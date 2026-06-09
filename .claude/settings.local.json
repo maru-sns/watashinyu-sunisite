@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Start-Process \"C:\\\\Users\\\\81907\\\\Desktop\\\\kuro-do\\\\index.html\")",
+      "WebSearch",
+      "WebFetch(domain:www.kokudo.or.jp)",
+      "WebFetch(domain:www.pref.ibaraki.jp)",
+      "WebFetch(domain:shibutani.org)"
+    ]
+  }
+}

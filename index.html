@@ -1,0 +1,578 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鹿行5市 経済・産業ダッシュボード｜茨城県鹿行地域</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#eef2f7; --panel:#ffffff; --panel2:#f3f6fa; --line:#d8e0ea;
+    --txt:#1a2733; --sub:#5b6b7c; --accent:#1d6fb8; --accent-d:#155a96;
+    --good:#2e9e6b; --warn:#cf8a00; --bad:#d2453f;
+    --c-kashima:#c0504d; --c-itako:#3f6fa6; --c-kamisu:#3f9e57; --c-namegata:#e08a1e; --c-hokota:#8e6aa6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.65;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(120deg,#1d6fb8,#155a96);color:#fff;padding:30px 20px 24px;
+    box-shadow:0 2px 10px rgba(21,90,150,.18)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  h1{font-size:clamp(21px,4vw,30px);letter-spacing:.02em}
+  h1 small{display:block;font-size:13.5px;color:#d6e6f5;font-weight:400;margin-top:6px}
+  .tag{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    border-radius:999px;padding:3px 12px;font-size:12px;margin-top:14px}
+  .fresh{margin-top:12px;font-size:12px;color:#dcebf9;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+  .fresh .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+  .fresh b{color:#fff}
+  .fresh .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:8px;padding:4px 10px;color:#eaf3fb}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .btn{border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn-w{background:#fff;color:var(--accent-d)} .btn-w:hover{background:#eaf3fb}
+  .btn-o{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.4)} .btn-o:hover{background:rgba(255,255,255,.2)}
+  section{margin:40px 0}
+  .sec-head{border-left:5px solid var(--accent);padding-left:12px;margin-bottom:6px}
+  h2{font-size:20px} .sec-sub{color:var(--sub);font-size:13px;margin:2px 0 18px}
+  .lead{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+  .lead b{color:var(--accent-d)}
+  /* explain */
+  .explain{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .explain div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .explain b{color:var(--accent-d)} .explain p{font-size:12.5px;color:var(--sub);margin-top:3px}
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;
+    overflow:hidden;transition:.15s;cursor:pointer;box-shadow:0 1px 3px rgba(26,39,51,.05)}
+  .card:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(26,39,51,.12);border-color:var(--accent)}
+  .card .bar{position:absolute;top:0;left:0;width:100%;height:4px}
+  .card .en{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em}
+  .card h3{font-size:18px;margin:1px 0 8px}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:8px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--sub);
+    padding:5px 0;border-top:1px dashed var(--line)}
+  .row b{font-size:15px;font-weight:700;color:var(--txt)}
+  .row b.pos{color:var(--good)} .row b.neg{color:var(--bad)}
+  .more{margin-top:10px;text-align:center;font-size:11.5px;color:var(--accent);font-weight:700}
+  .card .catch{font-size:12px;color:var(--accent-d);font-weight:600;margin:2px 0 8px;line-height:1.45}
+  .rev{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:12px;
+    cursor:pointer;transition:.15s;box-shadow:0 1px 3px rgba(26,39,51,.05)}
+  .rev:hover{box-shadow:0 6px 18px rgba(26,39,51,.12);transform:translateY(-2px)}
+  .rev-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .rev-h b{font-size:16px} .rev-catch{font-size:13px;color:var(--accent-d);font-weight:600}
+  .rev p{font-size:13px;color:var(--txt);line-height:1.75;margin:0}
+  /* charts */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+  .chart-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(26,39,51,.05)}
+  .chart-box .ch-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .chart-box h3{font-size:14px} .chart-box p{font-size:12px;color:var(--sub);margin:2px 0 12px}
+  .png-btn{flex:none;background:var(--panel2);border:1px solid var(--line);color:var(--sub);
+    border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer}
+  .png-btn:hover{background:#e6edf5;color:var(--accent)}
+  .chart-area{position:relative;height:262px}
+  /* runway */
+  .rwlist{display:flex;flex-direction:column;gap:10px}
+  .rwitem{display:grid;grid-template-columns:90px 1fr auto;align-items:center;gap:12px;
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+  .rwitem .nm{font-weight:700;font-size:14px}
+  .rwbar{height:18px;border-radius:9px;background:#e7edf4;position:relative;overflow:hidden}
+  .rwbar i{position:absolute;left:0;top:0;height:100%;border-radius:9px}
+  .rwitem .val{font-size:12.5px;color:var(--sub);white-space:nowrap;min-width:150px;text-align:right}
+  .rwitem .val b{color:var(--txt);font-size:15px}
+  /* table */
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:920px}
+  th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:#fff}
+  thead th{background:var(--panel2);color:var(--sub);font-weight:700;font-size:12px;white-space:nowrap}
+  tbody tr:hover td{background:#f6f9fc}
+  .heat{font-weight:700;border-radius:6px;padding:3px 8px}
+  .pill{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:16px;font-size:12.5px;color:var(--sub)}
+  .legend span{display:flex;align-items:center}
+  .note{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);
+    border-radius:8px;padding:14px 16px;font-size:12.5px;color:var(--sub);margin-top:18px}
+  footer{border-top:1px solid var(--line);margin-top:46px;padding:24px 0;color:var(--sub);font-size:12px}
+  footer a,.note a{color:var(--accent)}
+  /* term tooltip */
+  .term{border-bottom:1px dotted var(--accent);cursor:help;position:relative;outline:none}
+  .term:hover::after,.term:focus::after{content:attr(data-tip);position:absolute;left:0;bottom:150%;
+    width:min(260px,72vw);background:#1a2733;color:#fff;padding:9px 11px;border-radius:8px;font-size:12px;
+    font-weight:400;line-height:1.55;z-index:40;box-shadow:0 6px 18px rgba(0,0,0,.22);white-space:normal}
+  /* modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(26,39,51,.5);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:16px;padding:24px;max-width:600px;width:100%;position:relative;max-height:88vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+  .modal h3{font-size:18px;margin-bottom:6px} .modal p{font-size:13px;color:var(--sub);margin:9px 0 4px}
+  .modal ol{margin:4px 0 0 18px;font-size:13px;color:var(--sub)} .modal ol li{margin:10px 0}
+  .modal code{display:block;background:#0e2233;padding:10px 12px;border-radius:8px;font-size:12px;color:#dceaf6;margin:6px 0;word-break:break-all;font-family:Consolas,monospace}
+  .modal .x{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--sub);font-size:24px;cursor:pointer;line-height:1}
+  .modal .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .modal .acts button{border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#fff} .btn-ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .copied{color:var(--good);font-size:12px;margin-left:8px;opacity:0;transition:.2s} .copied.show{opacity:1}
+  .dt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-top:10px}
+  .dt-grid .k{font-size:12px;color:var(--sub)} .dt-grid .v{font-size:15px;font-weight:700;text-align:right}
+  .dt-sec{margin-top:16px;border-top:2px solid var(--line);padding-top:12px}
+  .dt-sec h4{font-size:13px;color:var(--accent-d);margin-bottom:4px}
+  .dt-tag{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:12px;margin:3px 4px 0 0;color:var(--txt)}
+  @media (max-width:520px){ .dt-grid{grid-template-columns:1fr} h1{font-size:20px} .chart-area{height:240px} }
+  @media print{
+    body{background:#fff} header{background:#155a96 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .toolbar,.png-btn,.upd-btn,.more,.modal-bg{display:none !important}
+    .card,.chart-box,.rwitem,.lead,.note{break-inside:avoid;box-shadow:none}
+    section{margin:18px 0}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>鹿行5市 経済・産業ダッシュボード
+      <small>茨城県 鹿行（ろっこう）地域｜鹿嶋市・潮来市・神栖市・行方市・鉾田市</small>
+    </h1>
+    <span class="tag">● 産業・経済の強みを軸に、人口・財政まで一望</span>
+    <div id="freshness" class="fresh"></div>
+    <div class="toolbar">
+      <button class="btn btn-w" onclick="openUpd()">🔄 データを更新</button>
+      <button class="btn btn-o" onclick="window.print()">🖨 印刷・PDF保存</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ① 産業・経済（主眼・トップ） -->
+  <section>
+    <div class="sec-head"><h2>産業・経済の強み</h2></div>
+    <p class="sec-sub">鹿行は「臨海工業（神栖・鹿嶋）」と「全国有数の農業（鉾田・行方）」の二大エンジンを持つ地域です</p>
+    <div class="lead" id="econLead"></div>
+    <p class="sec-sub" style="margin-bottom:10px">市カードをクリックすると、その市の詳細（産業・人口・財政）が開きます。</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- 市別 総評 -->
+  <section>
+    <div class="sec-head"><h2>市別 総評（強み・課題）</h2></div>
+    <p class="sec-sub">各市の経済・財政の特徴を一言＋短評でまとめました。クリックで詳細が開きます</p>
+    <div id="reviews"></div>
+  </section>
+
+  <section>
+    <div class="legend" id="legend"></div>
+    <div class="grid">
+      <div class="chart-box"><div class="ch-head"><div><h3>製造品出荷額等</h3><p>令和2年・経済センサス（億円）</p></div><button class="png-btn" onclick="savePng('chManu','製造品出荷額')">PNG</button></div><div class="chart-area"><canvas id="chManu"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>市内総生産（GDP）</h3><p>令和2年度・市町村民経済計算（億円）</p></div><button class="png-btn" onclick="savePng('chGdp','市内総生産')">PNG</button></div><div class="chart-area"><canvas id="chGdp"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>農業産出額</h3><p>令和5年・農水省推計（億円）</p></div><button class="png-btn" onclick="savePng('chAgr','農業産出額')">PNG</button></div><div class="chart-area"><canvas id="chAgr"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>商業年間販売額</h3><p>令和2年・経済センサス（億円）</p></div><button class="png-btn" onclick="savePng('chComm','商業販売額')">PNG</button></div><div class="chart-area"><canvas id="chComm"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>産業別の就業人口</h3><p>令和2年国勢調査（人・構成比）</p></div><button class="png-btn" onclick="savePng('chEmp','産業別就業人口')">PNG</button></div><div class="chart-area"><canvas id="chEmp"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>産業構造（相対比較）</h3><p>各市の特色を5市内で指数化</p></div><button class="png-btn" onclick="savePng('chRadar','産業構造')">PNG</button></div><div class="chart-area"><canvas id="chRadar"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- ② 人口・雇用 -->
+  <section>
+    <div class="sec-head"><h2>人口・雇用</h2></div>
+    <p class="sec-sub">人口規模・高齢化・推移と、働く場（事業所・従業者）の状況</p>
+    <div class="grid">
+      <div class="chart-box"><div class="ch-head"><div><h3>人口の推移</h3><p>国勢調査（2010→2020年・人）</p></div><button class="png-btn" onclick="savePng('chPopTrend','人口推移')">PNG</button></div><div class="chart-area"><canvas id="chPopTrend"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>現在の人口</h3><p>2025年4月・住民基本台帳（人）</p></div><button class="png-btn" onclick="savePng('chPop','人口')">PNG</button></div><div class="chart-area"><canvas id="chPop"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3><span class="term" tabindex="0" data-tip="65歳以上の人口が全体に占める割合。高いほど高齢化が進んでいます。">高齢化率</span>（老齢人口割合）</h3><p>住民基本台帳ベース（％）</p></div><button class="png-btn" onclick="savePng('chAged','高齢化率')">PNG</button></div><div class="chart-area"><canvas id="chAged"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>従業者数（製造業・商業）</h3><p>令和3年・経済センサス（人）</p></div><button class="png-btn" onclick="savePng('chWorkers','従業者数')">PNG</button></div><div class="chart-area"><canvas id="chWorkers"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- ③ 財政・くらしの安心 -->
+  <section>
+    <div class="sec-head"><h2>財政・くらしの安心</h2></div>
+    <p class="sec-sub">市の「貯金・収支・健全度」。鹿行5市はいずれも国の早期健全化基準を大きく下回り、財政は健全です</p>
+    <div class="explain" style="margin-bottom:18px">
+      <div><b>歳入／歳出</b> ＝ 収入／支出<p>1年で市に入る・出るお金</p></div>
+      <div><b><span class="term" tabindex="0" data-tip="その年に入ったお金と出たお金の差（当年度実質収支−前年度実質収支）。プラスが黒字。">単年度収支</span></b> ＝ 今年の黒字／赤字<p>その年の収支の差</p></div>
+      <div><b><span class="term" tabindex="0" data-tip="災害や急な支出に備えて積み立てるお金。いわば市の貯金。">基金</span></b> ＝ 市の貯金<p>取りくずせる積立金</p></div>
+      <div><b>あと何年もつか</b> ＝ 貯金 ÷ 毎年の赤字<p>赤字の年だけ計算する目安</p></div>
+    </div>
+    <div class="rwlist" id="rwlist"></div>
+    <div class="grid" style="margin-top:18px">
+      <div class="chart-box"><div class="ch-head"><div><h3>基金残高（貯金）</h3><p>積立金現在高・令和3年度末（億円）</p></div><button class="png-btn" onclick="savePng('chReserve','基金残高')">PNG</button></div><div class="chart-area"><canvas id="chReserve"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>今年の収支（単年度収支）</h3><p>令和3年度決算（億円）右が黒字</p></div><button class="png-btn" onclick="savePng('chBalance','単年度収支')">PNG</button></div><div class="chart-area"><canvas id="chBalance"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3><span class="term" tabindex="0" data-tip="行政に必要なお金を自前の税収でどれだけ賄えるか。1.0超で地方交付税に頼らず賄える水準。">財政力指数</span>（全国・県平均と比較）</h3><p>令和5年度・3か年平均</p></div><button class="png-btn" onclick="savePng('chFiscal','財政力指数')">PNG</button></div><div class="chart-area"><canvas id="chFiscal"></canvas></div></div>
+      <div class="chart-box"><div class="ch-head"><div><h3>財政の健全度（独自スコア）</h3><p>公式4指標から算出（100点満点）</p></div><button class="png-btn" onclick="savePng('chHealth','健全度')">PNG</button></div><div class="chart-area"><canvas id="chHealth"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- ④ 一覧表 -->
+  <section>
+    <div class="sec-head"><h2>全指標 一覧表</h2></div>
+    <p class="sec-sub">緑が濃いほど5市の中で良い値（比率系は低いほど良いので反転して着色）。市名クリックで詳細</p>
+    <div class="table-wrap"><table id="tbl"></table></div>
+    <div class="note" id="srcnote"></div>
+  </section>
+
+</div>
+
+<!-- 更新モーダル -->
+<div class="modal-bg" id="updModal" onclick="if(event.target===this)closeUpd()">
+  <div class="modal">
+    <button class="x" onclick="closeUpd()">×</button>
+    <h3>🔄 データを更新する</h3>
+    <p id="updStatus"></p>
+    <p>このページはローカルファイルのため、ブラウザから直接データを取り込めません。下の2ステップで最新化します。</p>
+    <ol>
+      <li>更新コマンドをコピーして PowerShell で実行（公式ソースを再取得し数値を更新）
+        <code id="updCmd">cd C:\Users\81907\Desktop\kuro-do; &amp; .\update-data.ps1</code>
+        <div class="acts"><button class="btn-primary" onclick="copyCmd()">コマンドをコピー</button><span class="copied" id="copied">コピーしました ✓</span></div>
+      </li>
+      <li>更新が終わったら、このページを再読み込みして反映
+        <div class="acts"><button class="btn-ghost" onclick="location.reload()">ページを再読み込み</button></div>
+      </li>
+    </ol>
+    <p style="margin-top:14px">人口・財政力・決算・製造品出荷額は<b>PDF形式</b>のため、新年度版はClaudeに「<b>sourcesのPDFから最新値でindex.htmlを更新して</b>」と依頼すると確実です。</p>
+  </div>
+</div>
+
+<!-- 市詳細モーダル -->
+<div class="modal-bg" id="cityModal" onclick="if(event.target===this)closeCity()">
+  <div class="modal" id="cityBody"></div>
+</div>
+
+<footer>
+  <div class="wrap" id="footnote"></div>
+</footer>
+
+<script>
+/* ===== データ鮮度（update-data.ps1 が自動で書き換える行） ===== */
+const LAST_UPDATED = "2026-06-08";            /*__LAST_UPDATED__*/
+const VINTAGE = {                              /*__VINTAGE__*/
+  pop:"2025年4月", fiscal:"令和5年度", agri:"令和5年(2023)",
+  econ:"令和2年(2020)", kessan:"令和3年度(2021)決算"
+};
+
+/* ===== データ。最新値はここを書き換えるだけ ===== */
+const COLORS = ['#c0504d','#3f6fa6','#3f9e57','#e08a1e','#8e6aa6'];
+const data = [
+  {name:'鹿嶋市',en:'Kashima', pop:64787, gdp:2734, income:300.2, fiscal:0.974,
+    manu:5176, comm:1207, agri:36.5,  revenue:289.7, expense:273.4, balance:7.95,  reserve:28.3,
+    keisei:89.4, kosai:6.3, shourai:47.0, aged:32.2,
+    popH22:66093, popH27:67879, popR2:66950, emp1:904, emp2:9347, emp3:18230,
+    manuEst:56, manuEmp:5707, commEst:487, commEmp:4252, farms:801,
+    feature:'鉄鋼・港湾・サッカー', tokusan:'鹿島灘はまぐり・タカミメロン・ピーマン', kanko:'鹿島神宮・鹿島アントラーズ・鹿島港',
+    catch:'鉄鋼と港の強い産業都市。貯金はやや薄め',
+    review:'日本製鉄の製鉄所と鹿島港を中心に製造品出荷額5,176億円を誇り、財政力指数0.974とほぼ自立した産業都市。健全度は61点（良好）。一方で基金は28.3億円と5市で最も薄く（歳出の約1.2か月分）、経常収支比率89.4%とやや硬直的。強固な産業基盤を活かしつつ、貯金の積み増しと収支管理が今後の安定の鍵。'},
+  {name:'潮来市',en:'Itako',   pop:25909, gdp:805,  income:264.4, fiscal:0.479,
+    manu:589,  comm:497,  agri:30.2,  revenue:165.8, expense:151.9, balance:3.23,  reserve:33.5,
+    keisei:82.3, kosai:9.8, shourai:69.0, aged:34.4,
+    popH22:30534, popH27:29111, popR2:27604, emp1:500, emp2:3802, emp3:8266,
+    manuEst:47, manuEmp:1760, commEst:252, commEmp:1952, farms:671,
+    feature:'水郷観光・米作', tokusan:'あやめ笠・まこも・早場米', kanko:'水郷潮来あやめまつり・前川あやめ園',
+    catch:'水郷観光のまち。産業規模は小さめ',
+    review:'水郷観光と米作のまち。製造品589億円・農業30億円・市内総生産805億円といずれも5市最小で、産業規模が小ぶり。財政力指数0.479、実質公債費比率9.8%・将来負担比率69.0%は5市で最も高めで健全度は45点（おおむね良好だが5市最低）。人口も最小かつ減少傾向。観光資源を核にした交流・定住人口の取り込みが財政改善の鍵。'},
+  {name:'神栖市',en:'Kamisu',  pop:93550, gdp:8409, income:375.9, fiscal:1.334,
+    manu:14764,comm:2446, agri:188.7, revenue:530.4, expense:480.6, balance:12.89, reserve:70.8,
+    keisei:91.4, kosai:3.5, shourai:23.4, aged:24.2,
+    popH22:94795, popH27:95454, popR2:94266, emp1:2362, emp2:17560, emp3:25724,
+    manuEst:189, manuEmp:14491, commEst:706, commEmp:6373, farms:932,
+    feature:'石油化学・鹿島臨海工業', tokusan:'ピーマン・千両・鹿島灘はまぐり', kanko:'港公園・神之池緑地・息栖神社',
+    catch:'産業・財政とも鹿行随一の優等生',
+    review:'鹿島臨海工業地帯を抱え、製造品出荷額1兆4,764億円・市内総生産8,409億円は鹿行で群を抜く。財政力指数1.334は地方交付税に頼らない水準で、基金70.8億円・単年度黒字12.9億円と財政も健全度76点（非常に良好）。高齢化率24.2%と5市で最も若く人口も最大。重化学工業への依存度の高さと、人口の頭打ちへの対応が今後の論点。'},
+  {name:'行方市',en:'Namegata',pop:31283, gdp:1102, income:311.2, fiscal:0.430,
+    manu:497,  comm:413,  agri:267.9, revenue:190.7, expense:184.6, balance:-1.31, reserve:70.1,
+    keisei:84.7, kosai:8.3, shourai:45.3, aged:37.1,
+    popH22:37611, popH27:34909, popR2:32185, emp1:3923, emp2:4971, emp3:8590,
+    manuEst:77, manuEmp:2423, commEst:320, commEmp:1830, farms:2750,
+    feature:'施設園芸・畜産', tokusan:'さつまいも・セリ・豚肉・霞ヶ浦水産品', kanko:'霞ヶ浦・北浦・なめがたファーマーズヴィレッジ',
+    catch:'農業は強いが、人口減・高齢化が最大の課題',
+    review:'施設園芸・畜産で農業産出額268億円を誇る農業都市。ただし人口は37,611→32,185人と減少が5市で最も大きく、高齢化率37.1%も最高。財政力指数0.430は5市最低で、唯一の単年度赤字（▲1.3億円）。もっとも基金70.1億円と厚く当面の財政余力はあり健全度49点。基金を元手にした産業構造の転換と定住促進が急務。'},
+  {name:'鉾田市',en:'Hokota',  pop:46303, gdp:1549, income:317.5, fiscal:0.457,
+    manu:508,  comm:652,  agri:676.2, revenue:268.4, expense:253.9, balance:1.89,  reserve:166.5,
+    keisei:87.9, kosai:8.6, shourai:0,  aged:34.6,
+    popH22:50156, popH27:48147, popR2:45953, emp1:6646, emp2:4689, emp3:10827,
+    manuEst:51, manuEmp:1500, commEst:382, commEmp:2606, farms:2851,
+    feature:'メロン・さつまいも（農業全国3位）', tokusan:'メロン・さつまいも・みず菜・トマト・いちご', kanko:'メロン狩り・農業体験・涸沼',
+    catch:'全国3位の農業都市。財政の備えは厚い',
+    review:'農業産出額676億円は全国市町村3位、メロン・さつまいもの一大産地で就業者の3割が第1次産業。財政力指数0.457と数値は控えめだが、基金166.5億円（歳出の約7.9か月分）は5市最大で将来負担比率はゼロ、単年度も黒字と備えは堅実、健全度56点。担い手の確保と、工業・商業の弱さの底上げが課題。'},
+];
+/* 比較基準（全国＝小都市/市平均, 県＝茨城県平均。出典は注記参照） */
+const PREF   = {fiscal:0.677, keisei:85.7, kosai:6.3, shourai:28.8};   // 茨城県平均(R4)
+const NATION = {fiscal:0.56,  keisei:93.1, kosai:4.7, shourai:0.6};    // 全国 小都市/市平均(参考)
+
+const fmt  = n => (Math.round(n*10)/10).toLocaleString('ja-JP');
+const fmt0 = n => Math.round(n).toLocaleString('ja-JP');
+const labels = data.map(d=>d.name);
+const charts = {};
+
+/* ===== 派生指標 ===== */
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+data.forEach(d=>{
+  d.runway = d.balance >= 0 ? Infinity : d.reserve/Math.abs(d.balance);
+  d.months = d.reserve/d.expense*12;
+  const sF = clamp(Math.min(d.fiscal,1.4)/1.4*35, 0, 35);
+  const sK = clamp(25*(1 - d.kosai/25), 0, 25);
+  const sE = clamp(20*(1 - (d.keisei-70)/30), 0, 20);
+  const sS = clamp(20*(1 - d.shourai/100), 0, 20);
+  d.score = Math.round(sF+sK+sE+sS);
+  d.health = d.score>=75?{t:'非常に良好',c:getCss('--good')}
+            :d.score>=60?{t:'良好',c:getCss('--good')}
+            :d.score>=45?{t:'おおむね良好',c:getCss('--warn')}
+            :d.score>=30?{t:'やや注意',c:getCss('--warn')}:{t:'注意',c:getCss('--bad')};
+});
+function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+/* ===== リード文（産業の要約） ===== */
+const topManu=[...data].sort((a,b)=>b.manu-a.manu)[0];
+const topAgri=[...data].sort((a,b)=>b.agri-a.agri)[0];
+document.getElementById('econLead').innerHTML =
+  `鹿行5市の市内総生産は合計 <b>${fmt0(data.reduce((s,d)=>s+d.gdp,0))}億円</b>。`
+  +`工業は <b>${topManu.name}</b>（製造品出荷額 ${fmt0(topManu.manu)}億円）が牽引し、`
+  +`農業は <b>${topAgri.name}</b>（農業産出額 ${fmt(topAgri.agri)}億円・全国上位）が全国有数。`
+  +`臨海部の重化学工業と内陸部の大規模農業がはっきり分かれているのが鹿行の特徴です。`;
+
+/* ===== カード（クリックで詳細） ===== */
+document.getElementById('cards').innerHTML = data.map((d,i)=>{
+  const bal = d.balance>=0?`<b class="pos">＋${fmt(d.balance)}</b>`:`<b class="neg">▲${fmt(Math.abs(d.balance))}</b>`;
+  return `<div class="card" onclick="showCity(${i})">
+    <div class="bar" style="background:${COLORS[i]}"></div>
+    <div class="en">${d.en}</div><h3>${d.name}</h3>
+    <span class="badge" style="background:${d.health.c}22;color:${d.health.c};border:1px solid ${d.health.c}">健全度：${d.health.t}（${d.score}点）</span>
+    <div class="row"><span>🏭 製造品出荷</span><b>${fmt0(d.manu)}<span style="font-size:11px;color:var(--sub)">億円</span></b></div>
+    <div class="row"><span>🌾 農業産出</span><b>${fmt(d.agri)}<span style="font-size:11px;color:var(--sub)">億円</span></b></div>
+    <div class="row"><span>👛 貯金（基金）</span><b>${fmt(d.reserve)}<span style="font-size:11px;color:var(--sub)">億円</span></b></div>
+    <div class="row"><span>📊 今年の収支</span>${bal}<span style="font-size:11px">億円</span></div>
+    <p class="catch">${d.catch}</p>
+    <div class="more">▼ クリックで詳細・総評</div>
+  </div>`;
+}).join('');
+
+/* ===== 市別 総評 ===== */
+document.getElementById('reviews').innerHTML = data.map((d,i)=>`
+  <div class="rev" onclick="showCity(${i})" style="border-left:5px solid ${COLORS[i]}">
+    <div class="rev-h"><b>${d.name}</b><span class="rev-catch">${d.catch}</span>
+      <span class="badge" style="background:${d.health.c}22;color:${d.health.c};border:1px solid ${d.health.c}">健全度 ${d.score}点・${d.health.t}</span></div>
+    <p>${d.review}</p>
+  </div>`).join('');
+
+/* ===== あと何年もつか ===== */
+const maxYears=60;
+document.getElementById('rwlist').innerHTML = data.map(d=>{
+  if(d.runway===Infinity){
+    return `<div class="rwitem"><span class="nm">${d.name}</span>
+      <div class="rwbar"><i style="width:100%;background:linear-gradient(90deg,#2e9e6b,#1d6fb8)"></i></div>
+      <span class="val"><b style="color:var(--good)">単年度黒字</b> ／ 貯金${fmt(d.reserve)}億円（歳出の約${d.months.toFixed(1)}ヶ月分）</span></div>`;
+  }
+  const w=Math.min(100,d.runway/maxYears*100), col=d.runway>=20?getCss('--good'):d.runway>=8?getCss('--warn'):getCss('--bad');
+  return `<div class="rwitem"><span class="nm">${d.name}</span>
+    <div class="rwbar"><i style="width:${w}%;background:${col}"></i></div>
+    <span class="val">約<b>${d.runway.toFixed(0)}年</b> ／ 貯金${fmt(d.reserve)}・赤字${fmt(Math.abs(d.balance))}億/年</span></div>`;
+}).join('');
+
+/* ===== 凡例 ===== */
+document.getElementById('legend').innerHTML = data.map((d,i)=>
+  `<span><i class="pill" style="background:${COLORS[i]}"></i>${d.name}</span>`).join('');
+
+/* ===== 更新モーダル＋鮮度 ===== */
+const UPDATE_CMD='cd C:\\Users\\81907\\Desktop\\kuro-do; & .\\update-data.ps1';
+function openUpd(){
+  const days=Math.floor((Date.now()-new Date(LAST_UPDATED).getTime())/86400000);
+  const s=days<=45?'最新です':days<=120?'やや古くなっています':'更新をおすすめします';
+  document.getElementById('updStatus').innerHTML=`現在のデータ最終更新：<b style="color:var(--txt)">${LAST_UPDATED}</b>（${days}日前・${s}）`;
+  document.getElementById('updModal').classList.add('show');
+}
+function closeUpd(){document.getElementById('updModal').classList.remove('show');}
+function copyCmd(){
+  const done=()=>{const c=document.getElementById('copied');c.classList.add('show');setTimeout(()=>c.classList.remove('show'),2000);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(UPDATE_CMD).then(done).catch(()=>fb(done));}else{fb(done);}
+  function fb(cb){const t=document.createElement('textarea');t.value=UPDATE_CMD;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy');cb();}catch(e){alert('コピーできませんでした');}document.body.removeChild(t);}
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeUpd();closeCity();}});
+(function(){
+  const days=Math.floor((Date.now()-new Date(LAST_UPDATED).getTime())/86400000);
+  const col=days<=45?getCss('--good'):days<=120?getCss('--warn'):getCss('--bad');
+  const st=days<=45?'最新':days<=120?'やや古い':'要更新';
+  document.getElementById('freshness').innerHTML=
+    `<span><i class="dot" style="background:${col}"></i>データ最終更新：<b>${LAST_UPDATED}</b>（${days}日前・${st}）</span>`
+    +`<span class="chip">人口 ${VINTAGE.pop}</span><span class="chip">財政力 ${VINTAGE.fiscal}</span>`
+    +`<span class="chip">農業 ${VINTAGE.agri}</span><span class="chip">決算 ${VINTAGE.kessan}</span><span class="chip">産業 ${VINTAGE.econ}</span>`;
+})();
+
+/* ===== 市詳細モーダル ===== */
+function showCity(i){
+  const d=data[i];
+  const bal=d.balance>=0?`<span style="color:var(--good)">＋${fmt(d.balance)}億円（黒字）</span>`:`<span style="color:var(--bad)">▲${fmt(Math.abs(d.balance))}億円（赤字）</span>`;
+  const cmp=(v,p,n,low)=>{const a=low?(v<=p?'良':'要'):(v>=p?'良':'要');return `県平均${p}／全国${n}`;};
+  const empTot=d.emp1+d.emp2+d.emp3;
+  const pc=x=>Math.round(x/empTot*100);
+  document.getElementById('cityBody').innerHTML=`
+    <button class="x" onclick="closeCity()">×</button>
+    <div style="border-left:6px solid ${COLORS[i]};padding-left:12px">
+      <div class="en" style="font-size:11px;color:var(--sub);letter-spacing:.08em">${d.en.toUpperCase()}</div>
+      <h3 style="font-size:22px">${d.name}</h3>
+      <span class="badge" style="background:${d.health.c}22;color:${d.health.c};border:1px solid ${d.health.c}">財政健全度：${d.health.t}（${d.score}点）</span>
+    </div>
+    <div class="dt-sec" style="border-top:none;padding-top:8px"><h4>📝 総評</h4>
+      <p style="font-size:13px;color:var(--txt);line-height:1.75;margin-top:4px">${d.review}</p></div>
+    <div class="dt-sec"><h4>🏭 産業・経済</h4>
+      <div class="dt-grid">
+        <div class="k">市内総生産(GDP)</div><div class="v">${fmt0(d.gdp)}億円</div>
+        <div class="k">製造品出荷額</div><div class="v">${fmt0(d.manu)}億円</div>
+        <div class="k">農業産出額</div><div class="v">${fmt(d.agri)}億円</div>
+        <div class="k">商業年間販売額</div><div class="v">${fmt0(d.comm)}億円</div>
+        <div class="k">1人当たり住民所得</div><div class="v">${fmt(d.income)}万円</div>
+        <div class="k">就業構成(1次/2次/3次)</div><div class="v">${pc(d.emp1)}/${pc(d.emp2)}/${pc(d.emp3)}%</div>
+      </div></div>
+    <div class="dt-sec"><h4>👥 人口・雇用</h4>
+      <div class="dt-grid">
+        <div class="k">人口(2025.4)</div><div class="v">${fmt0(d.pop)}人</div>
+        <div class="k">高齢化率</div><div class="v">${fmt(d.aged)}%</div>
+        <div class="k">人口推移(2010→2020)</div><div class="v">${fmt0(d.popH22)}→${fmt0(d.popR2)}人</div>
+        <div class="k">製造業 事業所/従業者</div><div class="v">${fmt0(d.manuEst)}所 / ${fmt0(d.manuEmp)}人</div>
+        <div class="k">商業 事業所/従業者</div><div class="v">${fmt0(d.commEst)}所 / ${fmt0(d.commEmp)}人</div>
+        <div class="k">農家数</div><div class="v">${fmt0(d.farms)}戸</div>
+      </div></div>
+    <div class="dt-sec"><h4>🏛 財政</h4>
+      <div class="dt-grid">
+        <div class="k">歳入／歳出</div><div class="v">${fmt0(d.revenue)} / ${fmt0(d.expense)}億円</div>
+        <div class="k">今年の収支</div><div class="v">${bal}</div>
+        <div class="k">貯金（基金残高）</div><div class="v">${fmt(d.reserve)}億円</div>
+        <div class="k">財政力指数</div><div class="v">${d.fiscal.toFixed(3)}</div>
+        <div class="k">経常収支比率</div><div class="v">${fmt(d.keisei)}%</div>
+        <div class="k">実質公債費比率</div><div class="v">${fmt(d.kosai)}%</div>
+        <div class="k">将来負担比率</div><div class="v">${d.shourai>0?fmt(d.shourai)+'%':'なし'}</div>
+      </div>
+      <p style="margin-top:8px;font-size:11.5px">※財政力指数の参考：茨城県平均 ${PREF.fiscal}／全国小都市平均 ${NATION.fiscal}</p></div>
+    <div class="dt-sec"><h4>🎯 特色・観光</h4>
+      <div style="margin-top:6px"><span class="dt-tag">主産業：${d.feature}</span></div>
+      <div style="margin-top:4px"><b style="font-size:12px;color:var(--sub)">特産品：</b>${d.tokusan.split('・').map(t=>`<span class="dt-tag">${t}</span>`).join('')}</div>
+      <div style="margin-top:4px"><b style="font-size:12px;color:var(--sub)">観光：</b>${d.kanko.split('・').map(t=>`<span class="dt-tag">${t}</span>`).join('')}</div>
+    </div>`;
+  document.getElementById('cityModal').classList.add('show');
+}
+function closeCity(){document.getElementById('cityModal').classList.remove('show');}
+
+/* ===== Chart.js 共通（ライトテーマ） ===== */
+Chart.defaults.color='#5b6b7c';
+Chart.defaults.font.family='"Segoe UI","Noto Sans JP",sans-serif';
+const grid={color:'#e6edf4'};
+function savePng(id,name){
+  const c=charts[id]; if(!c)return;
+  const a=document.createElement('a');
+  a.href=c.toBase64Image('image/png',1); a.download=`鹿行_${name}.png`; a.click();
+}
+function bar(id,key,unit,{horizontal=false}={}){
+  charts[id]=new Chart(document.getElementById(id),{type:'bar',
+    data:{labels,datasets:[{data:data.map(d=>d[key]),backgroundColor:COLORS,borderRadius:6,maxBarThickness:46}]},
+    options:{indexAxis:horizontal?'y':'x',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.parsed[horizontal?'x':'y'])} ${unit}`}}},
+      scales:{x:{grid:horizontal?grid:{display:false}},y:{grid:horizontal?{display:false}:grid}}}});
+}
+bar('chManu','manu','億円',{horizontal:true});
+bar('chGdp','gdp','億円',{horizontal:true});
+bar('chAgr','agri','億円',{horizontal:true});
+bar('chComm','comm','億円',{horizontal:true});
+bar('chReserve','reserve','億円',{horizontal:true});
+bar('chPop','pop','人');
+bar('chAged','aged','%');
+
+/* 産業別就業（積み上げ100%風・実数） */
+charts['chEmp']=new Chart(document.getElementById('chEmp'),{type:'bar',
+  data:{labels,datasets:[
+    {label:'第1次（農林水産）',data:data.map(d=>d.emp1),backgroundColor:'#3f9e57'},
+    {label:'第2次（工業・建設）',data:data.map(d=>d.emp2),backgroundColor:'#3f6fa6'},
+    {label:'第3次（商業・サービス）',data:data.map(d=>d.emp3),backgroundColor:'#e08a1e'}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:10}}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt0(c.parsed.y)}人`}}},
+    scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:grid}}}});
+
+/* 従業者数（製造業・商業 グループ棒） */
+charts['chWorkers']=new Chart(document.getElementById('chWorkers'),{type:'bar',
+  data:{labels,datasets:[
+    {label:'製造業 従業者',data:data.map(d=>d.manuEmp),backgroundColor:'#3f6fa6',borderRadius:5,maxBarThickness:20},
+    {label:'商業 従業者',data:data.map(d=>d.commEmp),backgroundColor:'#e08a1e',borderRadius:5,maxBarThickness:20}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt0(c.parsed.y)}人`}}},
+    scales:{x:{grid:{display:false}},y:{grid:grid}}}});
+
+/* 人口推移（折れ線） */
+charts['chPopTrend']=new Chart(document.getElementById('chPopTrend'),{type:'line',
+  data:{labels:['2010(H22)','2015(H27)','2020(R2)'],datasets:data.map((d,i)=>({
+    label:d.name,data:[d.popH22,d.popH27,d.popR2],borderColor:COLORS[i],backgroundColor:COLORS[i],
+    borderWidth:2,tension:.25,pointRadius:3}))},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:10}}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt0(c.parsed.y)}人`}}},
+    scales:{x:{grid:{display:false}},y:{grid:grid,ticks:{callback:v=>fmt0(v)}}}}});
+
+/* 収支 発散バー */
+charts['chBalance']=new Chart(document.getElementById('chBalance'),{type:'bar',
+  data:{labels,datasets:[{data:data.map(d=>d.balance),backgroundColor:data.map(d=>d.balance>=0?'#2e9e6b':'#d2453f'),borderRadius:6,maxBarThickness:46}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.x>=0?'黒字 ＋':'赤字 ▲'}${fmt(Math.abs(c.parsed.x))} 億円`}}},
+    scales:{x:{grid:grid,title:{display:true,text:'← 赤字　｜　黒字 →'}},y:{grid:{display:false}}}}});
+
+/* 財政力指数（バー＋全国/県平均ライン） */
+charts['chFiscal']=new Chart(document.getElementById('chFiscal'),{
+  type:'bar',
+  data:{labels,datasets:[
+    {type:'bar',label:'各市',data:data.map(d=>d.fiscal),backgroundColor:COLORS,borderRadius:6,maxBarThickness:46,order:3},
+    {type:'line',label:'茨城県平均',data:labels.map(()=>PREF.fiscal),borderColor:'#cf8a00',borderWidth:2,borderDash:[6,4],pointRadius:0,order:1},
+    {type:'line',label:'全国小都市平均',data:labels.map(()=>NATION.fiscal),borderColor:'#888',borderWidth:2,borderDash:[3,3],pointRadius:0,order:2}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10}}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toFixed(3)}`}}},
+    scales:{x:{grid:{display:false}},y:{grid:grid,suggestedMin:0}}}});
+
+/* 健全度 */
+charts['chHealth']=new Chart(document.getElementById('chHealth'),{type:'bar',
+  data:{labels,datasets:[{data:data.map(d=>d.score),backgroundColor:data.map(d=>d.health.c),borderRadius:6,maxBarThickness:46}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.parsed.y}点`}}},
+    scales:{x:{grid:{display:false}},y:{grid:grid,suggestedMax:100}}}});
+
+/* レーダー */
+const axes=[{k:'manu',lbl:'工業'},{k:'agri',lbl:'農業'},{k:'comm',lbl:'商業'},{k:'gdp',lbl:'GDP'},{k:'pop',lbl:'人口'},{k:'reserve',lbl:'貯金'}];
+const nf=Object.fromEntries(axes.map(a=>{const mx=Math.max(...data.map(d=>d[a.k]));return [a.k,d=>Math.round(d[a.k]/mx*100)];}));
+charts['chRadar']=new Chart(document.getElementById('chRadar'),{type:'radar',
+  data:{labels:axes.map(a=>a.lbl),datasets:data.map((d,i)=>({label:d.name,data:axes.map(a=>nf[a.k](d)),
+    borderColor:COLORS[i],backgroundColor:COLORS[i]+'22',pointBackgroundColor:COLORS[i],borderWidth:2,pointRadius:2}))},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
+    scales:{r:{angleLines:{color:'#e6edf4'},grid:{color:'#e6edf4'},pointLabels:{font:{size:12}},
+      ticks:{display:false,stepSize:25},suggestedMin:0,suggestedMax:100}}}});
+
+/* ===== 一覧表 ===== */
+const cols=[
+  {k:'manu',   lbl:'製造品出荷(億円)',  fmt:v=>fmt0(v), better:'high'},
+  {k:'agri',   lbl:'農業産出(億円)',    fmt:v=>fmt(v),  better:'high'},
+  {k:'gdp',    lbl:'市内総生産(億円)',  fmt:v=>fmt0(v), better:'high'},
+  {k:'pop',    lbl:'人口(人)',          fmt:v=>fmt0(v), better:'high'},
+  {k:'aged',   lbl:'高齢化率(%)',       fmt:v=>fmt(v),  better:'low'},
+  {k:'reserve',lbl:'貯金 基金(億円)',   fmt:v=>fmt(v),  better:'high'},
+  {k:'balance',lbl:'単年度収支(億円)',  fmt:v=>(v>=0?'＋':'▲')+fmt(Math.abs(v)), better:'high'},
+  {k:'fiscal', lbl:'財政力指数',        fmt:v=>v.toFixed(3), better:'high'},
+  {k:'score',  lbl:'健全度(点)',        fmt:v=>v, better:'high'},
+];
+const ranges=Object.fromEntries(cols.map(c=>{const v=data.map(d=>d[c.k]);return [c.k,[Math.min(...v),Math.max(...v)]];}));
+function heat(t){return `background:rgba(46,158,107,${0.08+t*0.5});color:${t>0.6?'#06301d':'var(--txt)'}`;}
+let html='<thead><tr><th>市</th>'+cols.map(c=>`<th>${c.lbl}</th>`).join('')+'</tr></thead><tbody>';
+data.forEach((d,i)=>{
+  html+=`<tr><td style="cursor:pointer" onclick="showCity(${i})"><span class="pill" style="background:${COLORS[i]}"></span><b style="color:var(--accent)">${d.name}</b></td>`;
+  cols.forEach(c=>{const[mn,mx]=ranges[c.k];let t=mx===mn?0.5:(d[c.k]-mn)/(mx-mn);if(c.better==='low')t=1-t;
+    html+=`<td><span class="heat" style="${heat(t)}">${c.fmt(d[c.k])}</span></td>`;});
+  html+='</tr>';
+});
+html+='</tbody>';document.getElementById('tbl').innerHTML=html;
+
+/* ===== 出典・脚注 ===== */
+document.getElementById('srcnote').innerHTML=
+  `<b>出典・年次：</b>人口=2025年4月 住民基本台帳（茨城県／国土地理協会）｜`
+  +`財政力指数=<a href="https://www.pref.ibaraki.jp/somu/shichoson/zaisei/kofuzei/zaiseiryokusisu/kofuzei_zaiseiryoku.html" target="_blank" rel="noopener">茨城県 令和5年度財政力指数一覧</a>｜`
+  +`農業産出額=<a href="https://www.maff.go.jp/j/tokei/kouhyou/sityoson_sansyutu/index.html" target="_blank" rel="noopener">農林水産省 令和5年市町村別農業産出額（推計）</a>｜`
+  +`決算・基金・健全化指標・製造品出荷額・商業・市内総生産・住民所得・就業人口・高齢化率=<a href="https://www.pref.ibaraki.jp/somu/shichoson/gyosei/gaikyo/r5/r5gyouseihen.html" target="_blank" rel="noopener">茨城県 令和5年版 行財政概要</a>（決算は令和3年度、産業・人口推移は令和2年）｜`
+  +`全国・小都市平均=<a href="https://www.soumu.go.jp/menu_seisaku/hakusyo/chihou/r03data/2021data/r03czb01-10.html" target="_blank" rel="noopener">総務省 地方財政白書</a>（参考・基準年が異なります）。<br>`
+  +`「健全度」「あと何年もつか」は本サイト独自の簡易指標で正式な財政判定ではありません。HTML内の <code>data</code> を書き換えれば全体が更新されます。`;
+document.getElementById('footnote').innerHTML=
+  `鹿行5市 経済・産業ダッシュボード ｜ 茨城県鹿行地域（鹿嶋・潮来・神栖・行方・鉾田）<br>`
+  +`出典：茨城県 行財政概要・財政力指数一覧、農林水産省、総務省。数値は各統計の年次が異なります（出典欄参照）。`;
+</script>
+</body>
+</html>

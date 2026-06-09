@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "static",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8765", "--directory", "C:\\Users\\81907\\Desktop\\kuro-do"],
+      "port": 8765
+    }
+  ]
+}
