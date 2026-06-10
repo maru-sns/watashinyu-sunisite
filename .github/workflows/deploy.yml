@@ -43,8 +43,10 @@ jobs:
           # ルート(/)=ダッシュボード、/news.html=ニュース。相互リンクはそのまま動く
           Copy-Item index.html, news.html, news-data.js, news-data.json _site/ -ErrorAction SilentlyContinue
 
-      - name: Pages 設定
+      - name: Pages 設定（初回は自動で有効化）
         uses: actions/configure-pages@v4
+        with:
+          enablement: true
 
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
