@@ -1,0 +1,56 @@
+name: Build & Deploy site
+
+# 公開＆ニュース自動更新:
+#  - master への push 時
+#  - 30分ごと（cron）にニュースを再取得して再公開（PCを切っても最新を保つ）
+#  - 手動実行（Actions画面のRun workflow）
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時実行は1本に（cronとpushが重なっても安全に）
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: 最新ニュースを取得（news-data.js / .json を生成）
+        shell: pwsh
+        run: ./update-news.ps1
+        continue-on-error: true   # 取得失敗時も前回データで公開を続行
+
+      - name: 公開用フォルダを組み立て
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory _site -Force | Out-Null
+          # ルート(/)=ダッシュボード、/news.html=ニュース。相互リンクはそのまま動く
+          Copy-Item index.html, news.html, news-data.js, news-data.json _site/ -ErrorAction SilentlyContinue
+
+      - name: Pages 設定
+        uses: actions/configure-pages@v4
+
+      - name: アーティファクトをアップロード
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: GitHub Pages へデプロイ
+        id: deploy
+        uses: actions/deploy-pages@v4

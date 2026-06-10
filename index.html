@@ -105,25 +105,6 @@
   .legend span{display:flex;align-items:center}
   .note{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);
     border-radius:8px;padding:14px 16px;font-size:12.5px;color:var(--sub);margin-top:18px}
-  /* ニュースフィード */
-  .news-item{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);
-    border-radius:12px;padding:14px 16px;cursor:pointer;transition:.15s;box-shadow:0 1px 3px rgba(26,39,51,.05)}
-  .news-item:hover{transform:translateX(3px);box-shadow:0 6px 18px rgba(26,39,51,.12);border-left-color:#1d6fb8}
-  .news-item.kashima{border-left-color:var(--c-kashima)}
-  .news-item.kamisu{border-left-color:var(--c-kamisu)}
-  .news-item.antlers{border-left-color:#d71c1c}
-  .news-item-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:wrap}
-  .news-source{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;
-    border-radius:4px;background:var(--panel2);color:var(--sub)}
-  .news-source.kashima{background:#c0504d22;color:var(--c-kashima)}
-  .news-source.kamisu{background:#3f9e5722;color:var(--c-kamisu)}
-  .news-source.antlers{background:#d71c1c22;color:#d71c1c}
-  .news-date{font-size:11px;color:var(--sub)}
-  .news-item h4{font-size:14px;font-weight:600;margin:0 0 4px;color:var(--txt);line-height:1.5}
-  .news-item p{font-size:13px;color:var(--txt);margin:0;line-height:1.65}
-  .news-badge{display:inline-block;font-size:10px;font-weight:700;background:var(--panel2);
-    color:var(--sub);padding:2px 7px;border-radius:3px;margin-top:6px;margin-right:4px}
-  .news-empty{text-align:center;padding:30px 20px;color:var(--sub);font-size:13px}
   footer{border-top:1px solid var(--line);margin-top:46px;padding:24px 0;color:var(--sub);font-size:12px}
   footer a,.note a{color:var(--accent)}
   /* term tooltip */
@@ -167,7 +148,8 @@
     <div id="freshness" class="fresh"></div>
     <div id="statusbar" class="status"></div>
     <div class="toolbar">
-      <button class="btn btn-w" onclick="openUpd()">🔄 データを更新</button>
+      <a class="btn btn-w" href="news.html" style="text-decoration:none">📰 ニュース＆SNS</a>
+      <button class="btn btn-o" onclick="openUpd()">🔄 データを更新</button>
       <button class="btn btn-o" id="autoBtn" onclick="toggleAuto()">⏸ 自動更新を止める</button>
       <button class="btn btn-o" onclick="shareDash()">📤 共有</button>
       <button class="btn btn-o" onclick="window.print()">🖨 印刷・PDF保存</button>
@@ -234,17 +216,6 @@
       <div class="chart-box"><div class="ch-head"><div><h3><span class="term" tabindex="0" data-tip="行政に必要なお金を自前の税収でどれだけ賄えるか。1.0超で地方交付税に頼らず賄える水準。">財政力指数</span>（全国・県平均と比較）</h3><p>令和5年度・3か年平均</p></div><button class="png-btn" onclick="savePng('chFiscal','財政力指数')">PNG</button></div><div class="chart-area"><canvas id="chFiscal"></canvas></div></div>
       <div class="chart-box"><div class="ch-head"><div><h3>財政の健全度（独自スコア）</h3><p>公式4指標から算出（100点満点）</p></div><button class="png-btn" onclick="savePng('chHealth','健全度')">PNG</button></div><div class="chart-area"><canvas id="chHealth"></canvas></div></div>
     </div>
-  </section>
-
-  <!-- ⑤ ニュース・SNS統合フィード -->
-  <section>
-    <div class="sec-head"><h2>ニュース・SNS</h2></div>
-    <p class="sec-sub">鹿嶋市・神栖市・アントラーズ関連のニュース＆SNS発信を自動取得。同じ情報は統一表示</p>
-    <div class="toolbar" style="margin-bottom:16px">
-      <button class="btn btn-w" id="newsRefreshBtn" onclick="refreshNews()">🔄 ニュースを更新</button>
-      <span id="newsLastUpdate" style="font-size:12px;color:var(--sub);align-self:center;margin-left:8px"></span>
-    </div>
-    <div id="newsFeed" style="display:flex;flex-direction:column;gap:10px"></div>
   </section>
 
   <!-- ④ 一覧表 -->
@@ -705,80 +676,6 @@ function shareDash(){
   function fb(){const ta=document.createElement('textarea');ta.value=payload;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){alert('コピーできませんでした');}document.body.removeChild(ta);}
 }
 
-/* ===== ニュース・SNS フィード ===== */
-let newsData = [];
-let newsRefreshTimer = null;
-const NEWS_REFRESH_INTERVAL = 5*60000; // 5分ごとに自動更新
-
-async function loadNews(){
-  try{
-    const res = await fetch('news-data.json', {cache:'no-store'});
-    if(!res.ok) throw new Error('Failed to load news');
-    newsData = await res.json();
-    renderNews();
-    updateNewsTimestamp();
-  }catch(e){
-    console.error('News load error:', e);
-    document.getElementById('newsFeed').innerHTML = '<div class="news-empty">ニュースを読み込めませんでした</div>';
-  }
-}
-
-function renderNews(){
-  const feed = document.getElementById('newsFeed');
-  if(!newsData || newsData.length===0){
-    feed.innerHTML = '<div class="news-empty">最新のニュースはまだありません</div>';
-    return;
-  }
-  feed.innerHTML = newsData.map(item => `
-    <div class="news-item ${item.category}" onclick="if('${item.url}') window.open('${item.url}','_blank')">
-      <div class="news-item-head">
-        <span class="news-source ${item.category}">${item.source}</span>
-        <span class="news-date">${formatDate(item.published)}</span>
-        ${item.duplicates && item.duplicates.length > 0 ? `<span class="news-badge">他${item.duplicates.length}件同報</span>` : ''}
-      </div>
-      <h4>${escapeHtml(item.title)}</h4>
-      ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ''}
-    </div>
-  `).join('');
-}
-
-function updateNewsTimestamp(){
-  const now = new Date();
-  const h = pad(now.getHours());
-  const m = pad(now.getMinutes());
-  const s = pad(now.getSeconds());
-  document.getElementById('newsLastUpdate').textContent = `最終更新: ${h}:${m}:${s}`;
-}
-
-function refreshNews(){
-  const btn = document.getElementById('newsRefreshBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ 更新中...';
-  loadNews().finally(() => {
-    btn.disabled = false;
-    btn.textContent = '🔄 ニュースを更新';
-  });
-}
-
-function formatDate(dateStr){
-  const d = new Date(dateStr);
-  const now = new Date();
-  const diff = Math.floor((now - d) / 1000);
-  if(diff < 60) return '今';
-  if(diff < 3600) return Math.floor(diff/60)+'分前';
-  if(diff < 86400) return Math.floor(diff/3600)+'時間前';
-  if(diff < 604800) return Math.floor(diff/86400)+'日前';
-  return `${d.getMonth()+1}月${d.getDate()}日`;
-}
-
-function escapeHtml(str){
-  const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
-  return str.replace(/[&<>"']/g, m => map[m]);
-}
-
-// 初期ロード＆定期更新開始
-loadNews();
-newsRefreshTimer = setInterval(loadNews, NEWS_REFRESH_INTERVAL);
 </script>
 </body>
 </html>

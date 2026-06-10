@@ -5,9 +5,12 @@
 # 仕組み: Google ニュース RSS は全媒体（新聞・スポーツ紙・地域メディア）を横断集約するため、
 #         「すべてのソース」を1本で取得でき、同一記事の重複も媒体名付きで統一できる。
 
-# --- PowerShell 5.1 は既定で TLS1.0。これが無いと https 取得が「接続が閉じられました」で失敗する ---
-[Net.ServicePointManager]::SecurityProtocol = `
-  [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls
+# --- PowerShell 5.1(Windows) は既定で TLS1.0。これが無いと https 取得が「接続が閉じられました」で失敗する ---
+#     PowerShell 7(GitHub Actions/Linux) では TLS は自動。古い列挙でエラーになり得るので try/catch で保護 ---
+try {
+  [Net.ServicePointManager]::SecurityProtocol = `
+    [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls
+} catch {}
 
 $ErrorActionPreference = 'SilentlyContinue'
 $root = $PSScriptRoot
