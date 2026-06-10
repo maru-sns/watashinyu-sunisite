@@ -1,47 +1,50 @@
 [
   {
-    "title": "鹿島アントラーズ、新シーズン開幕戦勝利",
-    "description": "J1リーグの鹿島アントラーズが新シーズン開幕戦で3-1の勝利を収めた",
+    "title": "鹿島アントラーズ、新シーズン開幕戦3-1勝利！",
+    "description": "J1リーグの鹿島アントラーズが新シーズン開幕戦でホームの鹿島スタジアムにて3-1の快勝。サポーターが熱狂する中、エースの2ゴールが決め手となった。",
     "published": "2026-06-10T15:30:00Z",
     "url": "https://www.antlers.co.jp/news/",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Kashima_Soccer_Stadium.jpg/640px-Kashima_Soccer_Stadium.jpg",
     "source": "アントラーズ公式",
     "category": "antlers",
-    "duplicates": [
-      {"source": "朝日新聞", "url": "https://www.asahi.com/"}
-    ]
+    "duplicates": [{"source": "朝日新聞", "url": "https://www.asahi.com/"}]
   },
   {
     "title": "神栖市の石油化学工業が好調、過去最高の生産量達成",
-    "description": "神栖市の臨海工業地帯における石油化学産業の2026年上期の生産量が過去最高を記録",
+    "description": "神栖市の鹿島臨海工業地帯における石油化学産業の2026年上期の生産量が過去最高を記録。地域経済の活性化にも貢献している。",
     "published": "2026-06-10T14:15:00Z",
     "url": "https://ibaraki-np.co.jp/",
+    "image": "",
     "source": "茨城新聞",
     "category": "kamisu",
     "duplicates": []
   },
   {
-    "title": "鹿嶋市、観光客数が前年同期比30%増加",
-    "description": "鹿嶋市の観光局が発表した5月の観光客数が前年同期比で30%増加したことが判明",
+    "title": "鹿嶋市、観光客数が前年同期比30%増！鹿島神宮が人気",
+    "description": "鹿嶋市観光局が発表した5月の観光客数が前年同期比で30%増加。鹿島神宮を中心に県外からの訪問者が急増しており、宿泊業にも好影響。",
     "published": "2026-06-10T10:45:00Z",
     "url": "https://www.city.kashima.ibaraki.jp/",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Kashima_Jingu_Haiden.jpg/640px-Kashima_Jingu_Haiden.jpg",
     "source": "朝日新聞",
     "category": "kashima",
     "duplicates": []
   },
   {
     "title": "神栖市、次期市長選挙に現職が立候補表明",
-    "description": "神栖市の現職市長が2026年の市長選挙への立候補を正式に表明",
+    "description": "神栖市の現職市長が2026年の市長選挙への立候補を正式に表明。産業振興と子育て支援の継続を公約に掲げている。",
     "published": "2026-06-09T16:20:00Z",
     "url": "https://www.city.kamisu.ibaraki.jp/",
+    "image": "",
     "source": "茨城新聞",
     "category": "kamisu",
     "duplicates": []
   },
   {
-    "title": "アントラーズ、新選手加入発表〜元U-20代表選手",
-    "description": "鹿島アントラーズが元U-20日本代表の新選手加入を発表。来季の戦力強化",
+    "title": "アントラーズ、元U-20日本代表の新選手加入を発表",
+    "description": "鹿島アントラーズが元U-20日本代表FWの加入を発表。背番号は未定で今夏の移籍市場での補強となる。来季に向けた戦力強化が期待される。",
     "published": "2026-06-09T12:00:00Z",
     "url": "https://www.antlers.co.jp/",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Kashima_Antlers_logo.png/320px-Kashima_Antlers_logo.png",
     "source": "アントラーズ公式",
     "category": "antlers",
     "duplicates": []

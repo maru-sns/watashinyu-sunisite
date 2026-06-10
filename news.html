@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鹿嶋・神栖・アントラーズ ニュース＆SNS</title>
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --white:#ffffff;
+    --line:#e2e8f2;
+    --txt:#1e2a3a;
+    --sub:#6b7a8d;
+    --antlers:#e8152a;
+    --antlers-l:#fff0f1;
+    --kashima:#0077cc;
+    --kashima-l:#e8f4ff;
+    --kamisu:#00a86b;
+    --kamisu-l:#e6f9f1;
+    --shadow:0 4px 20px rgba(30,42,58,.09);
+    --shadow-hover:0 10px 36px rgba(30,42,58,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+  /* ===== ヘッダー ===== */
+  header{
+    background:linear-gradient(120deg,#e8152a 0%,#ff5533 40%,#ff8c00 100%);
+    padding:22px 0 18px;position:sticky;top:0;z-index:60;
+    box-shadow:0 4px 18px rgba(232,21,42,.30)}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 18px}
+  .header-inner{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo-icon{width:48px;height:48px;background:#fff;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;font-size:26px;
+    box-shadow:0 3px 10px rgba(0,0,0,.18);flex-shrink:0}
+  .logo-text h1{font-size:clamp(17px,3.2vw,24px);font-weight:800;color:#fff;letter-spacing:.01em}
+  .logo-text p{font-size:12px;color:rgba(255,255,255,.80);margin-top:2px}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .live-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.22);
+    border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:5px 13px;
+    color:#fff;font-size:12.5px;font-weight:700}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:#7fff6e;
+    animation:pulse 1.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(127,255,110,.6)}70%{box-shadow:0 0 0 7px rgba(127,255,110,0)}100%{box-shadow:0 0 0 0 rgba(127,255,110,0)}}
+  #clock{font-size:12px;color:rgba(255,255,255,.75);min-width:60px;text-align:right}
+
+  /* ===== フィルターバー ===== */
+  .filterbar{background:#fff;border-bottom:2px solid var(--line);padding:10px 0;
+    position:sticky;top:88px;z-index:50;box-shadow:0 2px 10px rgba(30,42,58,.06)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .fbtn{border:2px solid var(--line);border-radius:999px;padding:6px 16px;
+    font-size:13px;font-weight:700;cursor:pointer;background:#fff;color:var(--sub);
+    transition:.18s;display:flex;align-items:center;gap:5px}
+  .fbtn:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(30,42,58,.1)}
+  .fbtn.active{color:#fff;border-color:transparent;box-shadow:0 3px 12px rgba(30,42,58,.2)}
+  .fbtn.f-all.active   {background:linear-gradient(135deg,#667eea,#764ba2)}
+  .fbtn.f-antlers.active{background:linear-gradient(135deg,#e8152a,#ff5533)}
+  .fbtn.f-kashima.active{background:linear-gradient(135deg,#0077cc,#00aaff)}
+  .fbtn.f-kamisu.active {background:linear-gradient(135deg,#00a86b,#00d68f)}
+  .cnt{font-size:11px;background:rgba(0,0,0,.1);border-radius:999px;padding:1px 7px}
+  .fbtn.active .cnt{background:rgba(255,255,255,.28)}
+  .refresh-btn{margin-left:auto;background:linear-gradient(135deg,#667eea,#764ba2);
+    color:#fff;border:none;border-radius:10px;padding:7px 15px;font-size:13px;
+    font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.18s}
+  .refresh-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(102,126,234,.45)}
+  .refresh-btn.loading .ri{animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ===== SNS バー ===== */
+  .sns-bar{background:#fff;border-radius:18px;padding:16px 20px;margin:24px 0 18px;
+    box-shadow:var(--shadow);border:1px solid var(--line)}
+  .sns-bar-title{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:.08em;
+    text-transform:uppercase;margin-bottom:10px}
+  .sns-links{display:flex;gap:9px;flex-wrap:wrap}
+  .sl{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border-radius:12px;
+    font-size:13px;font-weight:700;text-decoration:none;transition:.18s;border:2px solid transparent}
+  .sl:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+  .sl.tw  {background:#e8f5fd;color:#1d9bf0;border-color:#b8e0f7}
+  .sl.yt  {background:#ffeaea;color:#cc0000;border-color:#ffbdbd}
+  .sl.web {background:#f0f4ff;color:#4a6cf7;border-color:#c5d0ff}
+  .sl.ig  {background:#fef0f7;color:#c13584;border-color:#f5b8db}
+
+  /* ===== メインフィード ===== */
+  main{padding:0 0 60px}
+  .meta-bar{display:flex;align-items:center;gap:14px;margin:0 0 14px;
+    font-size:13px;color:var(--sub);flex-wrap:wrap}
+  .meta-bar b{color:var(--txt)}
+  #feedList{display:flex;flex-direction:column;gap:14px}
+  .feed-empty{text-align:center;padding:60px 20px;color:var(--sub);font-size:14px;
+    background:#fff;border-radius:18px;box-shadow:var(--shadow)}
+
+  /* ===== ニュースカード ===== */
+  .ncard{background:#fff;border-radius:18px;border:2px solid var(--line);
+    overflow:hidden;cursor:pointer;transition:.2s;box-shadow:var(--shadow);
+    text-decoration:none;display:flex;color:inherit}
+  .ncard:hover{box-shadow:var(--shadow-hover);transform:translateY(-3px)}
+  .ncard.antlers{border-left:6px solid var(--antlers)}
+  .ncard.kashima{border-left:6px solid var(--kashima)}
+  .ncard.kamisu {border-left:6px solid var(--kamisu)}
+
+  /* 画像サムネ（左側） */
+  .ncard-img{width:160px;flex-shrink:0;position:relative;overflow:hidden;background:#f0f2f7}
+  .ncard-img img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
+  .ncard:hover .ncard-img img{transform:scale(1.05)}
+  .ncard-img.no-img{display:flex;align-items:center;justify-content:center;
+    font-size:44px;min-height:120px}
+  .ncard-img.no-img.antlers{background:var(--antlers-l)}
+  .ncard-img.no-img.kashima{background:var(--kashima-l)}
+  .ncard-img.no-img.kamisu {background:var(--kamisu-l)}
+
+  /* テキストエリア */
+  .ncard-body{padding:16px 18px;flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  .ncard-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .src-tag{font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.04em}
+  .src-tag.antlers{background:var(--antlers);color:#fff}
+  .src-tag.kashima{background:var(--kashima);color:#fff}
+  .src-tag.kamisu {background:var(--kamisu);color:#fff}
+  .src-name{font-size:11.5px;color:var(--sub);font-weight:600}
+  .dup-tag{font-size:11px;background:#f3f0ff;color:#7c5cbf;border:1px solid #d8caff;
+    border-radius:6px;padding:2px 8px;font-weight:700}
+  .ncard-time{font-size:11px;color:var(--sub);margin-left:auto;white-space:nowrap}
+  .ncard-title{font-size:15.5px;font-weight:700;line-height:1.5;color:var(--txt)}
+  .ncard-desc{font-size:13px;color:var(--sub);line-height:1.65;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .ncard-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:6px}
+  .cat-chip{font-size:11.5px;font-weight:700;padding:3px 11px;border-radius:999px}
+  .cat-chip.antlers{background:var(--antlers-l);color:var(--antlers)}
+  .cat-chip.kashima{background:var(--kashima-l);color:var(--kashima)}
+  .cat-chip.kamisu {background:var(--kamisu-l);color:var(--kamisu)}
+  .open-link{margin-left:auto;font-size:12px;color:var(--sub);display:flex;align-items:center;gap:3px;
+    font-weight:600;transition:.15s}
+  .ncard:hover .open-link{color:var(--antlers)}
+
+  /* モバイル：縦並び */
+  @media(max-width:560px){
+    .ncard{flex-direction:column}
+    .ncard-img{width:100%;height:180px}
+    .ncard-img.no-img{min-height:80px}
+    .filterbar{top:72px}
+    .fbtn{padding:5px 12px;font-size:12px}
+  }
+
+  footer{border-top:2px solid var(--line);margin-top:40px;padding:22px 0;
+    color:var(--sub);font-size:13px;text-align:center}
+  footer a{color:var(--kashima);text-decoration:none;font-weight:600}
+  footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<header>
+  <div class="wrap">
+    <div class="header-inner">
+      <div class="logo-icon">⚽</div>
+      <div class="logo-text">
+        <h1>鹿嶋・神栖・アントラーズ</h1>
+        <p>ニュース &amp; SNS リアルタイムフィード</p>
+      </div>
+      <div class="header-right">
+        <div class="live-badge"><i class="live-dot"></i>LIVE</div>
+        <span id="clock"></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- フィルターバー -->
+<div class="filterbar">
+  <div class="wrap">
+    <div class="filters">
+      <button class="fbtn f-all active"     onclick="setFilter('all')">
+        🗞 すべて <span class="cnt" id="cAll"></span>
+      </button>
+      <button class="fbtn f-antlers"        onclick="setFilter('antlers')">
+        🔴 アントラーズ <span class="cnt" id="cAnt"></span>
+      </button>
+      <button class="fbtn f-kashima"        onclick="setFilter('kashima')">
+        🏯 鹿嶋市 <span class="cnt" id="cKas"></span>
+      </button>
+      <button class="fbtn f-kamisu"         onclick="setFilter('kamisu')">
+        🏭 神栖市 <span class="cnt" id="cKam"></span>
+      </button>
+      <button class="refresh-btn" id="rfBtn" onclick="refreshNews()">
+        <span class="ri">🔄</span> 更新
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- SNS 公式リンク -->
+  <div class="sns-bar">
+    <div class="sns-bar-title">公式アカウント・サイト</div>
+    <div class="sns-links">
+      <a class="sl tw" href="https://x.com/antlers_pr"           target="_blank" rel="noopener">𝕏 アントラーズ</a>
+      <a class="sl yt" href="https://www.youtube.com/@kashimaantlers" target="_blank" rel="noopener">▶ YouTube</a>
+      <a class="sl web" href="https://www.antlers.co.jp/"         target="_blank" rel="noopener">🌐 アントラーズ公式</a>
+      <a class="sl tw" href="https://x.com/city_kashima"         target="_blank" rel="noopener">𝕏 鹿嶋市</a>
+      <a class="sl web" href="https://www.city.kashima.ibaraki.jp/" target="_blank" rel="noopener">🌐 鹿嶋市</a>
+      <a class="sl tw" href="https://x.com/kamisu_koho"          target="_blank" rel="noopener">𝕏 神栖市</a>
+      <a class="sl web" href="https://www.city.kamisu.ibaraki.jp/"  target="_blank" rel="noopener">🌐 神栖市</a>
+    </div>
+  </div>
+
+  <!-- メタ情報 -->
+  <div class="meta-bar">
+    <span>表示中：<b id="dispCnt">0</b> 件</span>
+    <span>最終更新：<b id="fetchTime">--</b></span>
+  </div>
+
+  <!-- フィード -->
+  <main>
+    <div id="feedList"><div class="feed-empty">⏳ 読み込み中...</div></div>
+  </main>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <a href="index.html">← 鹿行5市 経済・産業ダッシュボード</a>
+    &nbsp;｜&nbsp; データ出典：朝日新聞 / 茨城新聞 / アントラーズ公式 / 各市公式サイト
+  </div>
+</footer>
+
+<script>
+const REFRESH_INTERVAL = 5 * 60 * 1000;
+const CAT_LABEL = {antlers:'アントラーズ', kashima:'鹿嶋市', kamisu:'神栖市'};
+const CAT_EMOJI = {antlers:'⚽', kashima:'🏯', kamisu:'🏭'};
+const SRC_CAT   = {
+  'アントラーズ公式':'antlers',
+  '朝日新聞':'kashima',
+  '茨城新聞':'kamisu',
+};
+
+let allNews = [];
+let filter  = 'all';
+
+/* 時刻 */
+function ts(d){
+  const s = Math.floor((Date.now() - new Date(d)) / 1000);
+  if(s <  60) return 'たった今';
+  if(s <3600) return Math.floor(s/60)+'分前';
+  if(s<86400) return Math.floor(s/3600)+'時間前';
+  const dt = new Date(d);
+  return `${dt.getMonth()+1}/${dt.getDate()}`;
+}
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* カード生成 */
+function cardHtml(item){
+  const cat = item.category;
+  const dup = item.duplicates?.length
+    ? `<span class="dup-tag">他 ${item.duplicates.length} 媒体</span>` : '';
+
+  /* 画像 */
+  let imgHtml;
+  if(item.image){
+    imgHtml = `<div class="ncard-img">
+      <img src="${esc(item.image)}" alt="" loading="lazy"
+        onerror="this.parentElement.className='ncard-img no-img ${cat}';this.remove();this.parentElement.textContent='${CAT_EMOJI[cat]||'📰'}'">
+    </div>`;
+  } else {
+    imgHtml = `<div class="ncard-img no-img ${cat}">${CAT_EMOJI[cat]||'📰'}</div>`;
+  }
+
+  return `<a class="ncard ${cat}" href="${esc(item.url)}" target="_blank" rel="noopener">
+    ${imgHtml}
+    <div class="ncard-body">
+      <div class="ncard-meta">
+        <span class="src-tag ${cat}">${esc(item.source)}</span>
+        <span class="src-name">${CAT_LABEL[cat]||''}</span>
+        ${dup}
+        <span class="ncard-time">${ts(item.published)}</span>
+      </div>
+      <div class="ncard-title">${esc(item.title)}</div>
+      ${item.description ? `<div class="ncard-desc">${esc(item.description)}</div>` : ''}
+      <div class="ncard-foot">
+        <span class="cat-chip ${cat}">${CAT_EMOJI[cat]} ${CAT_LABEL[cat]||''}</span>
+        <span class="open-link">記事を開く ↗</span>
+      </div>
+    </div>
+  </a>`;
+}
+
+/* 描画 */
+function render(){
+  const items = filter === 'all' ? allNews : allNews.filter(n=>n.category===filter);
+  document.getElementById('dispCnt').textContent = items.length;
+  const el = document.getElementById('feedList');
+  if(!items.length){
+    el.innerHTML = `<div class="feed-empty">😢 ニュースがありません。<br>update-data.ps1 を実行して取得してください。</div>`;
+    return;
+  }
+  el.innerHTML = items.map(cardHtml).join('');
+}
+
+/* カウント */
+function updateCounts(){
+  const n = (cat) => cat==='all' ? allNews.length : allNews.filter(n=>n.category===cat).length;
+  ['all','antlers','kashima','kamisu'].forEach(c=>{
+    const cnt = n(c);
+    const el = document.getElementById({all:'cAll',antlers:'cAnt',kashima:'cKas',kamisu:'cKam'}[c]);
+    if(el) el.textContent = cnt || '';
+  });
+}
+
+/* フィルター */
+function setFilter(cat){
+  filter = cat;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.f-${cat}`).classList.add('active');
+  render();
+}
+
+/* 取得 */
+async function loadNews(){
+  try{
+    const r = await fetch('news-data.json', {cache:'no-store'});
+    if(!r.ok) throw new Error(r.status);
+    allNews = await r.json();
+    const now = new Date();
+    const hms = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    document.getElementById('fetchTime').textContent = hms;
+  }catch(e){
+    if(!allNews.length)
+      document.getElementById('feedList').innerHTML =
+        '<div class="feed-empty">😓 ニュースの読み込みに失敗しました。<br>update-data.ps1 を実行してください。</div>';
+    return;
+  }
+  updateCounts();
+  render();
+}
+
+async function refreshNews(){
+  const btn = document.getElementById('rfBtn');
+  btn.classList.add('loading'); btn.disabled = true;
+  await loadNews();
+  btn.classList.remove('loading'); btn.disabled = false;
+}
+
+const pad = n => String(n).padStart(2,'0');
+
+/* 時計 */
+setInterval(()=>{
+  const n=new Date();
+  document.getElementById('clock').textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+},1000);
+
+loadNews();
+setInterval(loadNews, REFRESH_INTERVAL);
+</script>
+</body>
+</html>

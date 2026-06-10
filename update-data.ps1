@@ -149,11 +149,17 @@ try {
     $pubDate = $item.pubDate
     $category = Classify-News $title $desc
     if ($category -and -not [string]::IsNullOrEmpty($title)) {
+      # 画像を取得（enclosure / media:content / description内のimg）
+      $imgUrl = ''
+      if ($item.enclosure -and $item.enclosure.url) { $imgUrl = $item.enclosure.url }
+      elseif ($item.'media:content' -and $item.'media:content'.url) { $imgUrl = $item.'media:content'.url }
+      elseif ($desc -match 'src="([^"]+\.(jpg|jpeg|png|webp))"') { $imgUrl = $Matches[1] }
       $newsItems += [PSCustomObject]@{
         title = $title
         description = if ($desc) { ($desc -replace '<[^>]*>', '') } else { '' }
         published = Get-DateString $pubDate
         url = $link
+        image = $imgUrl
         source = '朝日新聞'
         category = $category
         duplicates = @()
@@ -173,11 +179,16 @@ try {
     $desc = $item.description
     $link = $item.link
     $pubDate = $item.pubDate
+    $imgUrl = ''
+    if ($item.enclosure -and $item.enclosure.url) { $imgUrl = $item.enclosure.url }
+    elseif ($item.'media:content' -and $item.'media:content'.url) { $imgUrl = $item.'media:content'.url }
+    elseif ($desc -match 'src="([^"]+\.(jpg|jpeg|png|webp))"') { $imgUrl = $Matches[1] }
     $newsItems += [PSCustomObject]@{
       title = $title
       description = if ($desc) { ($desc -replace '<[^>]*>', '') } else { '' }
       published = Get-DateString $pubDate
       url = $link
+      image = $imgUrl
       source = 'アントラーズ公式'
       category = 'antlers'
       duplicates = @()
