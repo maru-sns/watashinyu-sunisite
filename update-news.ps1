@@ -96,11 +96,17 @@ $deduped = $deduped | Select-Object -First 40
 # 注: Google ニュースの link は中継URLのため、記事個別の OG 画像は取得できない
 #     （全件同じ Google 側画像になる）。画像はカテゴリ別アイコンで表示する。
 
-# --- JSON 保存（1件以上取得できた時だけ上書き。0件ならダミー/前回データを保持）---
+# --- 保存（1件以上取得できた時だけ上書き。0件なら前回データを保持）---
+# file:// で直接開いても読めるよう news-data.js（window.NEWS_DATA）も出力する。
+# fetch は file:// でブロックされるが <script> 読み込みは許可されるため。
 if ($deduped.Count -gt 0) {
-  $json = $deduped | ConvertTo-Json -Depth 4
-  [System.IO.File]::WriteAllText($newsJsonPath, $json, (New-Object System.Text.UTF8Encoding($false)))
-  Write-Host ("保存完了: {0}件 -> news-data.json" -f $deduped.Count) -ForegroundColor Green
+  $json   = $deduped | ConvertTo-Json -Depth 4
+  $newsJsPath = Join-Path $root 'news-data.js'
+  $jsBody = "window.NEWS_DATA = $json;`r`nwindow.NEWS_UPDATED = `"$((Get-Date).ToString('yyyy-MM-dd HH:mm'))`";"
+  $utf8 = New-Object System.Text.UTF8Encoding($false)
+  [System.IO.File]::WriteAllText($newsJsonPath, $json, $utf8)
+  [System.IO.File]::WriteAllText($newsJsPath, $jsBody, $utf8)
+  Write-Host ("保存完了: {0}件 -> news-data.json / news-data.js" -f $deduped.Count) -ForegroundColor Green
 } else {
   Write-Host "取得0件のため既存データを保持しました" -ForegroundColor Yellow
 }

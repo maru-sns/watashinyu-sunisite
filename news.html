@@ -317,23 +317,45 @@ function setFilter(cat){
   render();
 }
 
-/* 取得 */
+/* 取得結果を画面へ反映 */
+function applyNews(arr){
+  allNews = arr || [];
+  const now = new Date();
+  document.getElementById('fetchTime').textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  updateCounts();
+  render();
+}
+function loadFailed(){
+  if(!allNews.length)
+    document.getElementById('feedList').innerHTML =
+      '<div class="feed-empty">😓 ニュースの読み込みに失敗しました。<br>PowerShell で <b>update-news.ps1</b> を実行してください。</div>';
+}
+
+/* news-data.js を &lt;script&gt; で読み込む（file:// でも動く。fetch は file:// 不可）。
+   キャッシュ無効化のためクエリを付与し、毎回新しい script タグで上書き読込する。 */
+function loadViaScript(){
+  return new Promise(resolve=>{
+    document.querySelectorAll('script[data-news]').forEach(s=>s.remove());
+    const s = document.createElement('script');
+    s.dataset.news = '1';
+    s.src = 'news-data.js?t=' + Date.now();
+    s.onload  = ()=>{ applyNews(window.NEWS_DATA); resolve(true); };
+    s.onerror = ()=>{ loadFailed(); resolve(false); };
+    document.body.appendChild(s);
+  });
+}
+
+/* 取得: http(s) なら fetch、file:// や fetch失敗時は script 読み込みにフォールバック */
 async function loadNews(){
+  if(location.protocol === 'file:') { await loadViaScript(); return; }
   try{
     const r = await fetch('news-data.json', {cache:'no-store'});
     if(!r.ok) throw new Error(r.status);
-    allNews = await r.json();
-    const now = new Date();
-    const hms = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-    document.getElementById('fetchTime').textContent = hms;
+    applyNews(await r.json());
   }catch(e){
-    if(!allNews.length)
-      document.getElementById('feedList').innerHTML =
-        '<div class="feed-empty">😓 ニュースの読み込みに失敗しました。<br>update-data.ps1 を実行してください。</div>';
-    return;
+    await loadViaScript();   // http でも json が無い等の場合に備える
   }
-  updateCounts();
-  render();
 }
 
 async function refreshNews(){
