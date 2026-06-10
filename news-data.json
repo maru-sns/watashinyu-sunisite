@@ -1,0 +1,49 @@
+[
+  {
+    "title": "鹿島アントラーズ、新シーズン開幕戦勝利",
+    "description": "J1リーグの鹿島アントラーズが新シーズン開幕戦で3-1の勝利を収めた",
+    "published": "2026-06-10T15:30:00Z",
+    "url": "https://www.antlers.co.jp/news/",
+    "source": "アントラーズ公式",
+    "category": "antlers",
+    "duplicates": [
+      {"source": "朝日新聞", "url": "https://www.asahi.com/"}
+    ]
+  },
+  {
+    "title": "神栖市の石油化学工業が好調、過去最高の生産量達成",
+    "description": "神栖市の臨海工業地帯における石油化学産業の2026年上期の生産量が過去最高を記録",
+    "published": "2026-06-10T14:15:00Z",
+    "url": "https://ibaraki-np.co.jp/",
+    "source": "茨城新聞",
+    "category": "kamisu",
+    "duplicates": []
+  },
+  {
+    "title": "鹿嶋市、観光客数が前年同期比30%増加",
+    "description": "鹿嶋市の観光局が発表した5月の観光客数が前年同期比で30%増加したことが判明",
+    "published": "2026-06-10T10:45:00Z",
+    "url": "https://www.city.kashima.ibaraki.jp/",
+    "source": "朝日新聞",
+    "category": "kashima",
+    "duplicates": []
+  },
+  {
+    "title": "神栖市、次期市長選挙に現職が立候補表明",
+    "description": "神栖市の現職市長が2026年の市長選挙への立候補を正式に表明",
+    "published": "2026-06-09T16:20:00Z",
+    "url": "https://www.city.kamisu.ibaraki.jp/",
+    "source": "茨城新聞",
+    "category": "kamisu",
+    "duplicates": []
+  },
+  {
+    "title": "アントラーズ、新選手加入発表〜元U-20代表選手",
+    "description": "鹿島アントラーズが元U-20日本代表の新選手加入を発表。来季の戦力強化",
+    "published": "2026-06-09T12:00:00Z",
+    "url": "https://www.antlers.co.jp/",
+    "source": "アントラーズ公式",
+    "category": "antlers",
+    "duplicates": []
+  }
+]

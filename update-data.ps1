@@ -32,6 +32,14 @@ $sources = @{
   'gaikyo_hokota_r5.pdf'        = 'https://www.pref.ibaraki.jp/somu/shichoson/gyosei/gaikyo/r5/documents/30_r5_hokota.pdf'
 }
 
+# ---- ニュース・SNS 取得元 ----
+$newsJsonPath = Join-Path $root 'news-data.json'
+$newsSources = @(
+  @{ url='https://www.asahi.com/rss/asahi_ibaraki.rss'; source='朝日新聞'; keywords=@('鹿嶋','神栖','アントラーズ') },
+  @{ url='https://ibaraki-np.co.jp/'; source='茨城新聞'; keywords=@('鹿嶋','神栖','アントラーズ'); isHtml=$true }
+)
+$antlersNewsUrl = 'https://www.antlers.co.jp/news/feed/'
+
 Write-Host '=== 1) ソースを再取得 ===' -ForegroundColor Cyan
 foreach ($name in $sources.Keys) {
   $dest = Join-Path $srcDir $name
@@ -104,6 +112,101 @@ Set-Content -Path $html -Value $content -Encoding UTF8 -NoNewline
 Write-Host ("  最終更新日 -> {0}" -f $today)
 if ($changed) { Write-Host '  農業産出額を更新しました' -ForegroundColor Green }
 else { Write-Host '  農業産出額に変更はありませんでした' }
+
+Write-Host ''
+
+# ===== 4) ニュース・SNS を取得 =====
+Write-Host '=== 4) ニュース・SNS を取得 ===' -ForegroundColor Cyan
+$newsItems = @()
+
+function Get-DateString {
+  param([string]$dateStr)
+  try {
+    if ([string]::IsNullOrEmpty($dateStr)) { return (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }
+    $d = [DateTime]::Parse($dateStr)
+    return $d.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  } catch {
+    return (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+  }
+}
+
+function Classify-News {
+  param([string]$title, [string]$desc)
+  if ($title -match '(鹿嶋|鹿島)' -or $desc -match '(鹿嶋|鹿島)') { return 'kashima' }
+  if ($title -match '神栖' -or $desc -match '神栖') { return 'kamisu' }
+  if ($title -match '(アントラーズ|鹿島|J1|J2|サッカー)' -or $desc -match '(アントラーズ|鹿島|J1|J2)') { return 'antlers' }
+  return $null
+}
+
+# RSS フィード取得
+try {
+  $rssUrl = 'https://www.asahi.com/rss/asahi_ibaraki.rss'
+  $rss = [xml](Invoke-WebRequest -Uri $rssUrl -UseBasicParsing -TimeoutSec 30).Content
+  foreach ($item in $rss.rss.channel.item | Select-Object -First 20) {
+    $title = $item.title
+    $desc = $item.description
+    $link = $item.link
+    $pubDate = $item.pubDate
+    $category = Classify-News $title $desc
+    if ($category -and -not [string]::IsNullOrEmpty($title)) {
+      $newsItems += [PSCustomObject]@{
+        title = $title
+        description = if ($desc) { ($desc -replace '<[^>]*>', '') } else { '' }
+        published = Get-DateString $pubDate
+        url = $link
+        source = '朝日新聞'
+        category = $category
+        duplicates = @()
+      }
+      Write-Host ("  {0} | {1}" -f $category.PadRight(8), ($title -replace '<[^>]*>', '').Substring(0, [Math]::Min(50, ($title -replace '<[^>]*>', '').Length)))
+    }
+  }
+} catch {
+  Write-Host ("  朝日新聞RSS取得失敗: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+}
+
+# アントラーズ公式ニュース
+try {
+  $rss = [xml](Invoke-WebRequest -Uri $antlersNewsUrl -UseBasicParsing -TimeoutSec 30).Content
+  foreach ($item in $rss.rss.channel.item | Select-Object -First 20) {
+    $title = $item.title
+    $desc = $item.description
+    $link = $item.link
+    $pubDate = $item.pubDate
+    $newsItems += [PSCustomObject]@{
+      title = $title
+      description = if ($desc) { ($desc -replace '<[^>]*>', '') } else { '' }
+      published = Get-DateString $pubDate
+      url = $link
+      source = 'アントラーズ公式'
+      category = 'antlers'
+      duplicates = @()
+    }
+    Write-Host ("  antlers   | {0}" -f ($title -replace '<[^>]*>', '').Substring(0, [Math]::Min(50, ($title -replace '<[^>]*>', '').Length)))
+  }
+} catch {
+  Write-Host ("  アントラーズニュース取得失敗: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+}
+
+# 時系列ソート＆重複排除
+$newsItems = $newsItems | Sort-Object { [DateTime]::Parse($_.published) } -Descending
+$deduped = @()
+$seen = @{}
+foreach ($item in $newsItems) {
+  $norm = ($item.title -replace '[。、，、]', '' -replace '\s', '').Substring(0, [Math]::Min(30, ($item.title -replace '[。、，、]', '' -replace '\s', '').Length))
+  if ($seen.ContainsKey($norm)) {
+    $seen[$norm].duplicates += @{ source = $item.source; url = $item.url }
+  } else {
+    $seen[$norm] = $item
+    $deduped += $item
+  }
+}
+
+# news-data.json に出力
+$json = $deduped | ConvertTo-Json -Depth 3
+if ([string]::IsNullOrEmpty($json)) { $json = '[]' }
+[System.IO.File]::WriteAllText($newsJsonPath, $json, [System.Text.Encoding]::UTF8)
+Write-Host ("  {0} 件のニュースを保存" -f $deduped.Count) -ForegroundColor Green
 
 Write-Host ''
 Write-Host '完了。PDF系（人口・財政力・決算）は sources\ に保存済み。' -ForegroundColor Cyan

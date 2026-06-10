@@ -26,6 +26,20 @@
   .fresh .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
   .fresh b{color:#fff}
   .fresh .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:8px;padding:4px 10px;color:#eaf3fb}
+  /* リアルタイム稼働ステータス */
+  .status{margin-top:10px;font-size:12px;color:#dcebf9;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+  .status .st-item{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:4px 11px}
+  .status b{color:#fff}
+  .status .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .dot.pulse{animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,200,130,.55)}70%{box-shadow:0 0 0 7px rgba(46,200,130,0)}100%{box-shadow:0 0 0 0 rgba(46,200,130,0)}}
+  /* 更新通知バナー */
+  .ubanner{position:fixed;left:0;right:0;bottom:0;background:#155a96;color:#fff;padding:12px 18px;display:none;
+    align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;z-index:70;box-shadow:0 -3px 14px rgba(0,0,0,.2);font-size:13px}
+  .ubanner.show{display:flex}
+  .ubanner button{border:none;border-radius:7px;padding:7px 14px;font-weight:700;cursor:pointer;background:#fff;color:#155a96}
+  .ubanner button.ghost{background:rgba(255,255,255,.2);color:#fff}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
   .btn{border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
   .btn-w{background:#fff;color:var(--accent-d)} .btn-w:hover{background:#eaf3fb}
@@ -91,6 +105,25 @@
   .legend span{display:flex;align-items:center}
   .note{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);
     border-radius:8px;padding:14px 16px;font-size:12.5px;color:var(--sub);margin-top:18px}
+  /* ニュースフィード */
+  .news-item{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);
+    border-radius:12px;padding:14px 16px;cursor:pointer;transition:.15s;box-shadow:0 1px 3px rgba(26,39,51,.05)}
+  .news-item:hover{transform:translateX(3px);box-shadow:0 6px 18px rgba(26,39,51,.12);border-left-color:#1d6fb8}
+  .news-item.kashima{border-left-color:var(--c-kashima)}
+  .news-item.kamisu{border-left-color:var(--c-kamisu)}
+  .news-item.antlers{border-left-color:#d71c1c}
+  .news-item-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .news-source{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;
+    border-radius:4px;background:var(--panel2);color:var(--sub)}
+  .news-source.kashima{background:#c0504d22;color:var(--c-kashima)}
+  .news-source.kamisu{background:#3f9e5722;color:var(--c-kamisu)}
+  .news-source.antlers{background:#d71c1c22;color:#d71c1c}
+  .news-date{font-size:11px;color:var(--sub)}
+  .news-item h4{font-size:14px;font-weight:600;margin:0 0 4px;color:var(--txt);line-height:1.5}
+  .news-item p{font-size:13px;color:var(--txt);margin:0;line-height:1.65}
+  .news-badge{display:inline-block;font-size:10px;font-weight:700;background:var(--panel2);
+    color:var(--sub);padding:2px 7px;border-radius:3px;margin-top:6px;margin-right:4px}
+  .news-empty{text-align:center;padding:30px 20px;color:var(--sub);font-size:13px}
   footer{border-top:1px solid var(--line);margin-top:46px;padding:24px 0;color:var(--sub);font-size:12px}
   footer a,.note a{color:var(--accent)}
   /* term tooltip */
@@ -118,7 +151,7 @@
   @media (max-width:520px){ .dt-grid{grid-template-columns:1fr} h1{font-size:20px} .chart-area{height:240px} }
   @media print{
     body{background:#fff} header{background:#155a96 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .toolbar,.png-btn,.upd-btn,.more,.modal-bg{display:none !important}
+    .toolbar,.png-btn,.upd-btn,.more,.modal-bg,.status,.ubanner{display:none !important}
     .card,.chart-box,.rwitem,.lead,.note{break-inside:avoid;box-shadow:none}
     section{margin:18px 0}
   }
@@ -132,8 +165,11 @@
     </h1>
     <span class="tag">● 産業・経済の強みを軸に、人口・財政まで一望</span>
     <div id="freshness" class="fresh"></div>
+    <div id="statusbar" class="status"></div>
     <div class="toolbar">
       <button class="btn btn-w" onclick="openUpd()">🔄 データを更新</button>
+      <button class="btn btn-o" id="autoBtn" onclick="toggleAuto()">⏸ 自動更新を止める</button>
+      <button class="btn btn-o" onclick="shareDash()">📤 共有</button>
       <button class="btn btn-o" onclick="window.print()">🖨 印刷・PDF保存</button>
     </div>
   </div>
@@ -200,6 +236,17 @@
     </div>
   </section>
 
+  <!-- ⑤ ニュース・SNS統合フィード -->
+  <section>
+    <div class="sec-head"><h2>ニュース・SNS</h2></div>
+    <p class="sec-sub">鹿嶋市・神栖市・アントラーズ関連のニュース＆SNS発信を自動取得。同じ情報は統一表示</p>
+    <div class="toolbar" style="margin-bottom:16px">
+      <button class="btn btn-w" id="newsRefreshBtn" onclick="refreshNews()">🔄 ニュースを更新</button>
+      <span id="newsLastUpdate" style="font-size:12px;color:var(--sub);align-self:center;margin-left:8px"></span>
+    </div>
+    <div id="newsFeed" style="display:flex;flex-direction:column;gap:10px"></div>
+  </section>
+
   <!-- ④ 一覧表 -->
   <section>
     <div class="sec-head"><h2>全指標 一覧表</h2></div>
@@ -235,13 +282,20 @@
   <div class="modal" id="cityBody"></div>
 </div>
 
+<!-- 更新通知バナー -->
+<div class="ubanner" id="ubanner">
+  <span>🆕 新しいデータが公開されています（<b id="ubDate"></b>）。表示を最新化できます。</span>
+  <button onclick="location.reload()">最新を表示</button>
+  <button class="ghost" onclick="document.getElementById('ubanner').classList.remove('show')">後で</button>
+</div>
+
 <footer>
   <div class="wrap" id="footnote"></div>
 </footer>
 
 <script>
 /* ===== データ鮮度（update-data.ps1 が自動で書き換える行） ===== */
-const LAST_UPDATED = "2026-06-08";            /*__LAST_UPDATED__*/
+const LAST_UPDATED = "2026-06-10";            /*__LAST_UPDATED__*/
 const VINTAGE = {                              /*__VINTAGE__*/
   pop:"2025年4月", fiscal:"令和5年度", agri:"令和5年(2023)",
   econ:"令和2年(2020)", kessan:"令和3年度(2021)決算"
@@ -573,6 +627,158 @@ document.getElementById('srcnote').innerHTML=
 document.getElementById('footnote').innerHTML=
   `鹿行5市 経済・産業ダッシュボード ｜ 茨城県鹿行地域（鹿嶋・潮来・神栖・行方・鉾田）<br>`
   +`出典：茨城県 行財政概要・財政力指数一覧、農林水産省、総務省。数値は各統計の年次が異なります（出典欄参照）。`;
+
+/* ===== リアルタイム稼働状態 ＆ 自動更新 ===== */
+const CHECK_MIN = 5;                 // 自動で更新有無を確認する間隔（分）
+let autoRefresh = true;              // 自動更新（既定ON）
+let nextCheckAt = Date.now() + CHECK_MIN*60000;
+const CHART_IDS = ['chManu','chGdp','chAgr','chComm','chEmp','chRadar','chPopTrend','chPop','chAged','chWorkers','chBalance','chFiscal','chHealth','chReserve'];
+const pad = n => String(n).padStart(2,'0');
+
+/* 正常に起動しているかの自己診断 */
+function selfCheck(){
+  const okChart  = typeof Chart!=='undefined';
+  const okData   = Array.isArray(data) && data.length===5;
+  const nCharts  = CHART_IDS.filter(id=>charts[id]).length;
+  const okCharts = nCharts===CHART_IDS.length;
+  return {ok:okChart&&okData&&okCharts, n:nCharts, total:CHART_IDS.length};
+}
+
+/* ステータスバー描画（毎秒） */
+function renderStatus(){
+  const now=new Date();
+  const t=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const c=selfCheck();
+  const col=c.ok?getCss('--good'):getCss('--bad');
+  const txt=c.ok?'正常稼働中':'読み込みエラー';
+  let h=`<span class="st-item"><i class="dot pulse" style="background:${col}"></i><b>${txt}</b>・グラフ ${c.n}/${c.total}</span>`;
+  h+=`<span class="st-item">🕐 <b>${t}</b></span>`;
+  if(autoRefresh){
+    const sec=Math.max(0,Math.round((nextCheckAt-Date.now())/1000));
+    h+=`<span class="st-item">🔄 自動更新 <b>ON</b>・次回確認 ${pad(Math.floor(sec/60))}:${pad(sec%60)}</span>`;
+    if(Date.now()>=nextCheckAt){ nextCheckAt=Date.now()+CHECK_MIN*60000; checkForUpdate(); }
+  }else{
+    h+=`<span class="st-item" style="opacity:.7">🔄 自動更新 OFF</span>`;
+  }
+  document.getElementById('statusbar').innerHTML=h;
+}
+
+/* 自動更新ON/OFF */
+function toggleAuto(){
+  autoRefresh=!autoRefresh;
+  if(autoRefresh) nextCheckAt=Date.now()+CHECK_MIN*60000;
+  document.getElementById('autoBtn').innerHTML=autoRefresh?'⏸ 自動更新を止める':'▶ 自動更新を再開';
+  renderStatus();
+}
+
+/* 新しいデータ（LAST_UPDATEDの変化）を検知し、バナーで通知 */
+async function checkForUpdate(){
+  try{
+    const res=await fetch(location.href,{cache:'no-store'});
+    const txt=await res.text();
+    const m=txt.match(/const LAST_UPDATED = "([^"]*)"/);
+    if(m&&m[1]&&m[1]!==LAST_UPDATED){
+      document.getElementById('ubDate').textContent=m[1];
+      document.getElementById('ubanner').classList.add('show');
+    }
+  }catch(e){ /* ローカルファイル(file://)はfetch不可。手動更新で対応 */ }
+}
+
+setInterval(renderStatus,1000); renderStatus();
+
+/* ===== 共有（Web Share API ＋ クリップボード） ===== */
+function shareDash(){
+  const url=location.href;
+  const isWeb=/^https?:/.test(url);
+  const summary='【鹿行5市 経済・産業ダッシュボード】\n'
+    +data.map(d=>`${d.name}：健全度${d.score}点（${d.health.t}）`).join('\n')
+    +`\nデータ最終更新：${LAST_UPDATED}`;
+  if(isWeb && navigator.share){
+    navigator.share({title:'鹿行5市ダッシュボード',text:summary,url}).catch(()=>{});
+    return;
+  }
+  const payload=summary+(isWeb?`\n${url}`:'');
+  const done=()=>alert(isWeb
+    ? '共有用テキスト＋URLをコピーしました。\nGemini・メール・チャット等に貼り付けて共有できます。'
+    : '共有用テキストをコピーしました。\n※リンク（URL）で共有するにはWeb公開が必要です。');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(payload).then(done).catch(fb);}else fb();
+  function fb(){const ta=document.createElement('textarea');ta.value=payload;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){alert('コピーできませんでした');}document.body.removeChild(ta);}
+}
+
+/* ===== ニュース・SNS フィード ===== */
+let newsData = [];
+let newsRefreshTimer = null;
+const NEWS_REFRESH_INTERVAL = 5*60000; // 5分ごとに自動更新
+
+async function loadNews(){
+  try{
+    const res = await fetch('news-data.json', {cache:'no-store'});
+    if(!res.ok) throw new Error('Failed to load news');
+    newsData = await res.json();
+    renderNews();
+    updateNewsTimestamp();
+  }catch(e){
+    console.error('News load error:', e);
+    document.getElementById('newsFeed').innerHTML = '<div class="news-empty">ニュースを読み込めませんでした</div>';
+  }
+}
+
+function renderNews(){
+  const feed = document.getElementById('newsFeed');
+  if(!newsData || newsData.length===0){
+    feed.innerHTML = '<div class="news-empty">最新のニュースはまだありません</div>';
+    return;
+  }
+  feed.innerHTML = newsData.map(item => `
+    <div class="news-item ${item.category}" onclick="if('${item.url}') window.open('${item.url}','_blank')">
+      <div class="news-item-head">
+        <span class="news-source ${item.category}">${item.source}</span>
+        <span class="news-date">${formatDate(item.published)}</span>
+        ${item.duplicates && item.duplicates.length > 0 ? `<span class="news-badge">他${item.duplicates.length}件同報</span>` : ''}
+      </div>
+      <h4>${escapeHtml(item.title)}</h4>
+      ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ''}
+    </div>
+  `).join('');
+}
+
+function updateNewsTimestamp(){
+  const now = new Date();
+  const h = pad(now.getHours());
+  const m = pad(now.getMinutes());
+  const s = pad(now.getSeconds());
+  document.getElementById('newsLastUpdate').textContent = `最終更新: ${h}:${m}:${s}`;
+}
+
+function refreshNews(){
+  const btn = document.getElementById('newsRefreshBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 更新中...';
+  loadNews().finally(() => {
+    btn.disabled = false;
+    btn.textContent = '🔄 ニュースを更新';
+  });
+}
+
+function formatDate(dateStr){
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if(diff < 60) return '今';
+  if(diff < 3600) return Math.floor(diff/60)+'分前';
+  if(diff < 86400) return Math.floor(diff/3600)+'時間前';
+  if(diff < 604800) return Math.floor(diff/86400)+'日前';
+  return `${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function escapeHtml(str){
+  const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
+  return str.replace(/[&<>"']/g, m => map[m]);
+}
+
+// 初期ロード＆定期更新開始
+loadNews();
+newsRefreshTimer = setInterval(loadNews, NEWS_REFRESH_INTERVAL);
 </script>
 </body>
 </html>
