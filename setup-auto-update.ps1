@@ -5,12 +5,14 @@
 $root       = $PSScriptRoot
 if (-not $root) { $root = (Get-Location).Path }
 $scriptPath = Join-Path $root 'update-news.ps1'
+$vbs        = Join-Path $root 'run-hidden.vbs'   # 黒いウィンドウを出さない隠し起動ランチャー
 
 # ---- タスク1: ニュース更新（10分ごと、ログオン中） ----
+# wscript.exe 経由で run-hidden.vbs を呼び、PowerShell を完全非表示で実行（コンソール非表示）
 $taskName   = 'KuroDo_NewsUpdate'
 $action     = New-ScheduledTaskAction `
-    -Execute 'powershell.exe' `
-    -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$scriptPath`""
+    -Execute 'wscript.exe' `
+    -Argument "`"$vbs`" `"$scriptPath`""
 $trigger    = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Minutes 10) -Once -At (Get-Date)
 $settings   = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 2) `
@@ -32,8 +34,8 @@ Write-Host "  → 10 分ごとに update-news.ps1 が自動実行されます"
 # ---- タスク2: 毎朝 7:00 に全データ更新（農業産出額 + ニュース） ----
 $taskNameFull = 'KuroDo_FullUpdate'
 $actionFull   = New-ScheduledTaskAction `
-    -Execute 'powershell.exe' `
-    -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$(Join-Path $root 'update-data.ps1')`""
+    -Execute 'wscript.exe' `
+    -Argument "`"$vbs`" `"$(Join-Path $root 'update-data.ps1')`""
 $triggerFull  = New-ScheduledTaskTrigger -Daily -At '07:00'
 $settingsFull = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 10) `
